@@ -308,7 +308,12 @@ export default class WorkoutTrackerPlugin extends Plugin {
   }
 
   async finishActiveSessionFromView(): Promise<void> {
-    new SessionFinishModal(this.app, async (options) => {
+    const hasUnfinishedSets =
+      this.activeSession?.exercises.some((exercise) =>
+        exercise.sets.some((set) => !set.completed)
+      ) || false;
+
+    new SessionFinishModal(this.app, hasUnfinishedSets, async (options) => {
       await this.finishActiveSession(options);
     }).open();
   }
@@ -320,6 +325,9 @@ export default class WorkoutTrackerPlugin extends Plugin {
     }
 
     let sessionToSave = this.activeSession;
+    if (options.fillUncompletedSets) {
+      sessionToSave = this.workoutSessionService.fillUncompletedSets(sessionToSave);
+    }
     if (options.storeNewTargets) {
       sessionToSave = this.workoutSessionService.applyTargetUpdates(sessionToSave);
     }
@@ -333,7 +341,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
 
     if (
       sessionToSave.routineId &&
-      (options.persistRoutineChanges || options.storeNewTargets)
+      (options.routineChangeStrategy !== "ignore" || options.storeNewTargets)
     ) {
       const routine = await this.definitionService.loadRoutineById(sessionToSave.routineId);
       if (routine) {
@@ -342,7 +350,17 @@ export default class WorkoutTrackerPlugin extends Plugin {
           sessionToSave,
           options
         );
-        await this.definitionService.updateRoutineDefinition(merged);
+        if (options.routineChangeStrategy === "overwrite") {
+          await this.definitionService.updateRoutineDefinition(merged);
+        } else if (options.routineChangeStrategy === "create_new") {
+          const nextRoutine: RoutineDefinition = {
+            ...merged,
+            id: `${merged.id}-${Date.now()}`,
+            name: `${merged.name} (updated ${sessionToSave.date})`,
+            filePath: undefined,
+          };
+          await this.definitionService.createRoutineDefinition(nextRoutine);
+        }
       }
     }
 

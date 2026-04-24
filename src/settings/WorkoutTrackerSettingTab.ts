@@ -141,6 +141,20 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
           })
       );
 
+    new Setting(containerEl)
+      .setName("Weight Unit")
+      .setDesc("Global weight unit used across logging and stats")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("lb", "lb")
+          .addOption("kg", "kg")
+          .setValue(this.plugin.settings.weightUnit)
+          .onChange(async (value) => {
+            this.plugin.settings.weightUnit = value as "kg" | "lb";
+            await this.plugin.saveSettings();
+          })
+      );
+
     containerEl.createEl("h3", { text: "Migration" });
     new Setting(containerEl)
       .setName("Template Migration Status")

@@ -46,6 +46,7 @@ export const DEFAULT_SETTINGS: WorkoutTrackerSettings = {
   // Delay in milliseconds before syncing frontmatter after manual edits in a workout file
   autoSyncDelayMs: 2000,
   dateFormat: "YYYY-MM-DD",
+  weightUnit: "lb",
   migration: {
     completed: false,
     exerciseCount: 0,

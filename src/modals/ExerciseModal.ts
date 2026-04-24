@@ -141,7 +141,9 @@ export class ExerciseModal extends Modal {
       );
 
       // Weight
-      new Setting(setContainer).setName("Weight (lbs)").addText((text) =>
+      new Setting(setContainer)
+        .setName(`Weight (${this.plugin.settings.weightUnit})`)
+        .addText((text) =>
         text
           .setPlaceholder("135")
           .setValue(set.weight?.toString() || "")

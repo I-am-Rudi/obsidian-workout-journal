@@ -168,3 +168,55 @@
     background-color: var(--color-red);
     opacity: 0.8;
 }
+
+/* Strong-like workout session tracker */
+.workout-session-view {
+    padding: 12px;
+}
+
+.workout-session-meta {
+    color: var(--text-muted);
+    margin-top: -4px;
+    margin-bottom: 12px;
+}
+
+.workout-session-card {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    background: var(--background-secondary);
+    padding: 10px;
+    margin-bottom: 12px;
+}
+
+.workout-session-card h3 {
+    margin: 0 0 8px 0;
+}
+
+.workout-session-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+}
+
+.workout-session-table th,
+.workout-session-table td {
+    border-bottom: 1px solid var(--background-modifier-border);
+    padding: 6px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.workout-session-row-completed {
+    background: color-mix(in srgb, var(--color-green) 12%, transparent);
+}
+
+.workout-session-set-editor {
+    display: flex;
+    gap: 4px;
+}
+
+.workout-session-set-editor input {
+    width: 72px;
+    font-size: 12px;
+    padding: 4px 6px;
+}

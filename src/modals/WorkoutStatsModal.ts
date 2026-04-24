@@ -59,7 +59,9 @@ export class WorkoutStatsModal extends Modal {
 
     new Setting(overviewSection)
       .setName("Total Volume")
-      .setDesc(`${stats.totalVolume.toLocaleString()} lbs`);
+      .setDesc(
+        `${stats.totalVolume.toLocaleString()} ${this.plugin.settings.weightUnit}`
+      );
 
     new Setting(overviewSection)
       .setName("Average Workout Duration")
@@ -100,7 +102,7 @@ export class WorkoutStatsModal extends Modal {
         new Setting(prSection)
           .setName(exercise)
           .setDesc(
-            `${record.weight} lbs × ${record.reps} reps (${record.date})`
+            `${record.weight} ${this.plugin.settings.weightUnit} × ${record.reps} reps (${record.date})`
           );
       });
     }

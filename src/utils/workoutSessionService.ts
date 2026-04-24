@@ -84,6 +84,26 @@ export class WorkoutSessionService {
     };
   }
 
+  fillUncompletedSets(session: WorkoutSession): WorkoutSession {
+    return {
+      ...session,
+      exercises: session.exercises.map((exercise) => ({
+        ...exercise,
+        completed: true,
+        sets: exercise.sets.map((set) =>
+          set.completed
+            ? set
+            : {
+                ...set,
+                actualReps: set.actualReps ?? set.targetReps,
+                actualWeight: set.actualWeight ?? set.targetWeight,
+                completed: true,
+              }
+        ),
+      })),
+    };
+  }
+
   toWorkoutLog(session: WorkoutSession): Workout {
     return {
       id: session.id,
@@ -117,7 +137,7 @@ export class WorkoutSessionService {
         return entry;
       }
 
-      const limit = finishOptions.persistRoutineChanges
+      const limit = finishOptions.routineChangeStrategy !== "ignore"
         ? sessionExercise.sets.length
         : entry.sets.length;
       const sets = [];

@@ -3,14 +3,21 @@ import { SessionFinishOptions } from "../types";
 
 export class SessionFinishModal extends Modal {
   onSubmit: (options: SessionFinishOptions) => void;
+  hasUnfinishedSets: boolean;
   options: SessionFinishOptions = {
+    fillUncompletedSets: false,
     storeNewTargets: true,
-    persistRoutineChanges: false,
+    routineChangeStrategy: "ignore",
   };
 
-  constructor(app: App, onSubmit: (options: SessionFinishOptions) => void) {
+  constructor(
+    app: App,
+    hasUnfinishedSets: boolean,
+    onSubmit: (options: SessionFinishOptions) => void
+  ) {
     super(app);
     this.onSubmit = onSubmit;
+    this.hasUnfinishedSets = hasUnfinishedSets;
   }
 
   onOpen() {
@@ -18,9 +25,17 @@ export class SessionFinishModal extends Modal {
     contentEl.empty();
 
     contentEl.createEl("h2", { text: "Finish Workout" });
-    contentEl.createEl("p", {
-      text: "Save workout log and choose what to persist for future sessions.",
-    });
+
+    if (this.hasUnfinishedSets) {
+      new Setting(contentEl)
+        .setName("Finish uncompleted sets?")
+        .setDesc("Set incomplete sets to target values and mark them complete.")
+        .addToggle((toggle) =>
+          toggle.setValue(false).onChange((value) => {
+            this.options.fillUncompletedSets = value;
+          })
+        );
+    }
 
     new Setting(contentEl)
       .setName("Store new target values")
@@ -32,12 +47,20 @@ export class SessionFinishModal extends Modal {
       );
 
     new Setting(contentEl)
-      .setName("Persist routine changes")
-      .setDesc("Apply set count/order/notes changes back to the routine note.")
-      .addToggle((toggle) =>
-        toggle.setValue(this.options.persistRoutineChanges).onChange((value) => {
-          this.options.persistRoutineChanges = value;
-        })
+      .setName("Routine changes")
+      .setDesc("Choose what to do with routine edits made during the workout.")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("ignore", "Ignore changes")
+          .addOption("overwrite", "Overwrite existing routine")
+          .addOption("create_new", "Create new routine")
+          .setValue(this.options.routineChangeStrategy)
+          .onChange((value) => {
+            this.options.routineChangeStrategy = value as
+              | "overwrite"
+              | "create_new"
+              | "ignore";
+          })
       );
 
     new Setting(contentEl).addButton((btn) =>

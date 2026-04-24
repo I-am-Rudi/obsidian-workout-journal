@@ -10,6 +10,7 @@ export interface WorkoutTrackerSettings {
   enableAutoSyncFrontmatter: boolean;
   autoSyncDelayMs: number;
   dateFormat: string;
+  weightUnit: "kg" | "lb";
   migration: MigrationState;
 }
 
@@ -160,6 +161,7 @@ export interface WorkoutSession {
 }
 
 export interface SessionFinishOptions {
+  fillUncompletedSets: boolean;
   storeNewTargets: boolean;
-  persistRoutineChanges: boolean;
+  routineChangeStrategy: "overwrite" | "create_new" | "ignore";
 }
