@@ -61,7 +61,7 @@ export class ExerciseTemplateSettingModal extends Modal {
 				}));
 
 		new Setting(contentEl)
-			.setName('Default Weight (lbs)')
+			.setName(`Default Weight (${this.plugin.settings.weightUnit})`)
 			.addText(text => text
 				.setPlaceholder('135')
 				.onChange(async (value) => {

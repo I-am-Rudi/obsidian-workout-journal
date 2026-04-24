@@ -186,6 +186,9 @@ export class WorkoutFileService {
         notes: exercise.notes,
       })),
       notes: workout.notes,
+      sourceRoutineId: workout.sourceRoutineId,
+      sourcePlanId: workout.sourcePlanId,
+      workoutTrackerType: "workout",
       workoutTracker: true, // Tag to identify workout files
     };
 
@@ -246,7 +249,12 @@ export class WorkoutFileService {
       const frontmatter = parseYaml(yamlContent);
 
       // Validate and construct workout object
-      if (!frontmatter || !frontmatter.workoutTracker) {
+      // Support both legacy and new discriminator markers for backwards compatibility.
+      if (
+        !frontmatter ||
+        (!frontmatter.workoutTracker &&
+          frontmatter.workoutTrackerType !== "workout")
+      ) {
         console.warn(`Invalid workout frontmatter in file: ${fallbackName}`);
         return null;
       }
@@ -258,6 +266,8 @@ export class WorkoutFileService {
         exercises: this.parseExercises(frontmatter.exercises || []),
         duration: frontmatter.duration,
         notes: frontmatter.notes,
+        sourceRoutineId: frontmatter.sourceRoutineId,
+        sourcePlanId: frontmatter.sourcePlanId,
       };
 
       return workout;

@@ -5,3 +5,7 @@ export { QuickWorkoutModal } from "./QuickWorkoutModal";
 export { WorkoutTypeSelectionModal } from "./WorkoutTypeSelectionModal";
 export { WorkoutStatsModal } from "./WorkoutStatsModal";
 export { WorkoutEditModal } from "./WorkoutEditModal";
+export { RoutineSelectionModal } from "./RoutineSelectionModal";
+export { PlanSelectionModal } from "./PlanSelectionModal";
+export { SessionFinishModal } from "./SessionFinishModal";
+export { InputPromptModal } from "./InputPromptModal";

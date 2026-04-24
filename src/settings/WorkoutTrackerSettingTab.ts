@@ -32,6 +32,58 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName("Exercise Library Folder")
+      .setDesc("Folder containing exercise definition notes")
+      .addText((text) =>
+        text
+          .setPlaceholder("Workout Library/Exercises")
+          .setValue(this.plugin.settings.exerciseLibraryFolder)
+          .onChange(async (value) => {
+            this.plugin.settings.exerciseLibraryFolder = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Routines Folder")
+      .setDesc("Folder containing routine definition notes")
+      .addText((text) =>
+        text
+          .setPlaceholder("Workout Library/Routines")
+          .setValue(this.plugin.settings.routinesFolder)
+          .onChange(async (value) => {
+            this.plugin.settings.routinesFolder = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Workout Plans Folder")
+      .setDesc("Folder containing workout plan definition notes")
+      .addText((text) =>
+        text
+          .setPlaceholder("Workout Library/Plans")
+          .setValue(this.plugin.settings.workoutPlansFolder)
+          .onChange(async (value) => {
+            this.plugin.settings.workoutPlansFolder = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Performance CSV Path")
+      .setDesc("CSV file used for previous values and target progression")
+      .addText((text) =>
+        text
+          .setPlaceholder("Workouts/workout-performance.csv")
+          .setValue(this.plugin.settings.performanceCsvPath)
+          .onChange(async (value) => {
+            this.plugin.settings.performanceCsvPath = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
       .setName("Enable Exercise Autocomplete")
       .setDesc("Show exercise suggestions when typing")
       .addToggle((toggle) =>
@@ -87,6 +139,35 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
             this.plugin.settings.dateFormat = value;
             await this.plugin.saveSettings();
           })
+      );
+
+    new Setting(containerEl)
+      .setName("Weight Unit")
+      .setDesc("Global weight unit used across logging and stats")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("lb", "lb")
+          .addOption("kg", "kg")
+          .setValue(this.plugin.settings.weightUnit)
+          .onChange(async (value) => {
+            this.plugin.settings.weightUnit = value as "kg" | "lb";
+            await this.plugin.saveSettings();
+          })
+      );
+
+    containerEl.createEl("h3", { text: "Migration" });
+    new Setting(containerEl)
+      .setName("Template Migration Status")
+      .setDesc(
+        this.plugin.settings.migration.completed
+          ? `Completed at ${this.plugin.settings.migration.migratedAt}. Exercises: ${this.plugin.settings.migration.exerciseCount}, Routines: ${this.plugin.settings.migration.routineCount}.`
+          : "Not yet migrated."
+      )
+      .addButton((btn) =>
+        btn.setButtonText("Migrate Templates to Notes").onClick(async () => {
+          await this.plugin.migrateTemplatesToNotes();
+          this.display();
+        })
       );
 
     // Exercise Templates Section
