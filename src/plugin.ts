@@ -43,6 +43,8 @@ import {
 
 export default class WorkoutTrackerPlugin extends Plugin {
   private static readonly DEFAULT_SINGLE_EXERCISE_SETS = 3;
+  private static readonly MIGRATION_DEFAULT_REPS = 8;
+  private static readonly MIGRATION_DEFAULT_WEIGHT = 0;
   settings: WorkoutTrackerSettings;
   fileService: WorkoutFileService;
   definitionService: DefinitionFileService;
@@ -456,7 +458,12 @@ export default class WorkoutTrackerPlugin extends Plugin {
           exerciseId: this.toId(exerciseName),
           exerciseName,
           exerciseLink: `[[${this.settings.exerciseLibraryFolder}/${exerciseName}]]`,
-          sets: [{ reps: 8, weight: 0 }],
+          sets: [
+            {
+              reps: WorkoutTrackerPlugin.MIGRATION_DEFAULT_REPS,
+              weight: WorkoutTrackerPlugin.MIGRATION_DEFAULT_WEIGHT,
+            },
+          ],
         })),
       };
       await this.definitionService.createRoutineDefinition(routine);
@@ -551,7 +558,9 @@ export default class WorkoutTrackerPlugin extends Plugin {
   }
 
   private toId(name: string): string {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const normalized = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const trimmed = normalized.replace(/^-+|-+$/g, "");
+    return trimmed || `workout-${Date.now()}`;
   }
 
   private handleFileModify(file: TFile): void {
