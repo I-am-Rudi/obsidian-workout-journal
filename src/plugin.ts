@@ -7,57 +7,89 @@ import {
   Notice,
   Plugin,
   TFile,
+  WorkspaceLeaf,
 } from "obsidian";
-import { WorkoutTrackerSettings, Workout } from "./types";
+import {
+  ExerciseDefinition,
+  RoutineDefinition,
+  SessionFinishOptions,
+  Workout,
+  WorkoutPlanDefinition,
+  WorkoutSession,
+  WorkoutTrackerSettings,
+} from "./types";
 import { DEFAULT_SETTINGS } from "./settings/defaults";
 import { WorkoutFileService } from "./utils/workoutFileService";
+import { DefinitionFileService } from "./utils/definitionFileService";
+import { PerformanceCsvService } from "./utils/performanceCsvService";
+import { WorkoutSessionService } from "./utils/workoutSessionService";
 import {
-  WorkoutModal,
   ExerciseTemplateModal,
+  PlanSelectionModal,
   QuickWorkoutModal,
-  WorkoutTypeSelectionModal,
-  WorkoutStatsModal,
+  RoutineSelectionModal,
+  SessionFinishModal,
   WorkoutEditModal,
+  WorkoutModal,
+  WorkoutStatsModal,
+  WorkoutTypeSelectionModal,
 } from "./modals";
 import { WorkoutTrackerSettingTab } from "./settings";
+import {
+  WORKOUT_SESSION_VIEW_TYPE,
+  WorkoutSessionView,
+} from "./views/WorkoutSessionView";
 
 export default class WorkoutTrackerPlugin extends Plugin {
   settings: WorkoutTrackerSettings;
   fileService: WorkoutFileService;
+  definitionService: DefinitionFileService;
+  performanceCsvService: PerformanceCsvService;
+  workoutSessionService: WorkoutSessionService;
+  activeSession: WorkoutSession | null = null;
+  private sessionLeaf: WorkspaceLeaf | null = null;
   private fileModifyEventRef: EventRef | undefined;
-  // A map that holds timouts for each file to debounce sync operations
   private syncTimeouts: Map<string, NodeJS.Timeout> = new Map();
 
   async onload() {
     await this.loadSettings();
 
-    // Initialize file service
     this.fileService = new WorkoutFileService(
       this.app,
       this.settings.defaultWorkoutFolder
     );
+    this.definitionService = new DefinitionFileService(this.app, this.settings);
+    this.performanceCsvService = new PerformanceCsvService(
+      this.app,
+      this.settings.performanceCsvPath
+    );
+    this.workoutSessionService = new WorkoutSessionService(
+      this.performanceCsvService
+    );
 
-    // Register file modification event handler for workout files
+    await this.definitionService.ensureFolders();
+    await this.performanceCsvService.ensureFile();
+
+    this.registerView(
+      WORKOUT_SESSION_VIEW_TYPE,
+      (leaf) => new WorkoutSessionView(leaf, this)
+    );
+
     this.fileModifyEventRef = this.app.vault.on(
       "modify",
       this.handleFileModify.bind(this)
     );
     this.registerEvent(this.fileModifyEventRef);
 
-    // This creates an icon in the left ribbon.
     const ribbonIconEl = this.addRibbonIcon(
       "biceps-flexed",
       "Workout Tracker",
-      (evt: MouseEvent) => {
-        // Called when the user clicks the icon.
+      () => {
         new WorkoutTypeSelectionModal(this.app, this).open();
       }
     );
-
-    // Perform additional things with the ribbon
     ribbonIconEl.addClass("workout-tracker-ribbon-class");
 
-    // This adds a simple command that can be triggered anywhere
     this.addCommand({
       id: "create-new-workout",
       name: "Create New Workout",
@@ -66,7 +98,6 @@ export default class WorkoutTrackerPlugin extends Plugin {
       },
     });
 
-    // This adds an editor command that can perform some operation on the current editor instance
     this.addCommand({
       id: "insert-exercise-template",
       name: "Insert Exercise Template",
@@ -86,17 +117,11 @@ export default class WorkoutTrackerPlugin extends Plugin {
       id: "quick-log-workout",
       name: "Quick Log Workout",
       checkCallback: (checking: boolean) => {
-        // Conditions to check
-        const markdownView =
-          this.app.workspace.getActiveViewOfType(MarkdownView);
+        const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
         if (markdownView) {
-          // If checking is true, we're simply "checking" if the command can be run.
-          // If checking is false, then we want to actually perform the operation.
           if (!checking) {
             new QuickWorkoutModal(this.app, this).open();
           }
-
-          // This command will only show up in Command Palette when the check function returns true
           return true;
         }
       },
@@ -114,8 +139,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
       id: "edit-current-workout",
       name: "Edit Current Workout",
       checkCallback: (checking: boolean) => {
-        const markdownView =
-          this.app.workspace.getActiveViewOfType(MarkdownView);
+        const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
         if (markdownView && markdownView.file) {
           if (!checking) {
             this.editWorkoutFile(markdownView.file);
@@ -125,29 +149,116 @@ export default class WorkoutTrackerPlugin extends Plugin {
       },
     });
 
+    this.addCommand({
+      id: "start-workout-from-routine",
+      name: "Start Workout From Routine",
+      callback: async () => {
+        const routines = await this.definitionService.loadRoutineDefinitions();
+        new RoutineSelectionModal(this.app, routines, async (routine) => {
+          await this.startSessionFromRoutine(routine, true);
+        }).open();
+      },
+    });
+
+    this.addCommand({
+      id: "start-workout-from-plan",
+      name: "Start Workout From Plan",
+      callback: async () => {
+        const [plans, routines] = await Promise.all([
+          this.definitionService.loadPlanDefinitions(),
+          this.definitionService.loadRoutineDefinitions(),
+        ]);
+        new PlanSelectionModal(this.app, plans, routines, async (plan, routine) => {
+          await this.startSessionFromRoutine(routine, true, plan);
+        }).open();
+      },
+    });
+
+    this.addCommand({
+      id: "start-workout-from-current-note",
+      name: "Start Workout From Current Note",
+      callback: async () => {
+        await this.startWorkoutFromCurrentNote();
+      },
+    });
+
+    this.addCommand({
+      id: "open-workout-session-popout",
+      name: "Open Active Workout Session in Popout",
+      callback: async () => {
+        if (!this.activeSession) {
+          new Notice("No active session. Start one from a routine or plan first.");
+          return;
+        }
+        await this.openSessionView(true);
+      },
+    });
+
+    this.addCommand({
+      id: "create-exercise-note",
+      name: "Create Exercise Note",
+      callback: async () => {
+        await this.createExerciseNoteFromPrompt();
+      },
+    });
+
+    this.addCommand({
+      id: "create-routine-note",
+      name: "Create Routine Note",
+      callback: async () => {
+        await this.createRoutineNoteFromPrompt();
+      },
+    });
+
+    this.addCommand({
+      id: "create-workout-plan-note",
+      name: "Create Workout Plan Note",
+      callback: async () => {
+        await this.createPlanNoteFromPrompt();
+      },
+    });
+
+    this.addCommand({
+      id: "migrate-settings-templates-to-notes",
+      name: "Migrate Settings Templates to Notes",
+      callback: async () => {
+        await this.migrateTemplatesToNotes();
+      },
+    });
+
     this.addSettingTab(new WorkoutTrackerSettingTab(this.app, this));
   }
 
   onunload() {
-    // Clean up event handlers
     if (this.fileModifyEventRef) {
       this.app.vault.offref(this.fileModifyEventRef);
     }
-
-    // Clear any pending sync timeouts
     this.syncTimeouts.forEach((timeout) => clearTimeout(timeout));
     this.syncTimeouts.clear();
+    this.app.workspace.detachLeavesOfType(WORKOUT_SESSION_VIEW_TYPE);
   }
 
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    if (!this.settings.migration) {
+      this.settings.migration = {
+        completed: false,
+        exerciseCount: 0,
+        routineCount: 0,
+      };
+    }
 
-    // Update file service if it exists
     if (this.fileService) {
       this.fileService = new WorkoutFileService(
         this.app,
         this.settings.defaultWorkoutFolder
       );
+    }
+    if (this.definitionService) {
+      this.definitionService.setSettings(this.settings);
+    }
+    if (this.performanceCsvService) {
+      this.performanceCsvService.setPath(this.settings.performanceCsvPath);
     }
   }
 
@@ -176,49 +287,277 @@ export default class WorkoutTrackerPlugin extends Plugin {
     }
   }
 
-  /**
-   * Handle file modification events for workout files with debouncing
-   */
-  private handleFileModify(file: TFile): void {
-    // Check if auto-sync is enabled
-    if (!this.settings.enableAutoSyncFrontmatter) {
+  async startSessionFromRoutine(
+    routine: RoutineDefinition,
+    preferPopout: boolean,
+    plan?: WorkoutPlanDefinition
+  ): Promise<void> {
+    const resolved = await this.definitionService.resolveRoutineExercises(routine);
+    if (resolved.warnings.length) {
+      new Notice(resolved.warnings.join("\n"));
+    }
+    const session = await this.workoutSessionService.createSessionFromRoutine(
+      resolved.resolved,
+      {
+        planId: plan?.id,
+        planName: plan?.name,
+      }
+    );
+    this.activeSession = session;
+    await this.openSessionView(preferPopout);
+  }
+
+  async finishActiveSessionFromView(): Promise<void> {
+    new SessionFinishModal(this.app, async (options) => {
+      await this.finishActiveSession(options);
+    }).open();
+  }
+
+  async finishActiveSession(options: SessionFinishOptions): Promise<void> {
+    if (!this.activeSession) {
+      new Notice("No active session to finish.");
       return;
     }
 
-    // Only process markdown files
+    let sessionToSave = this.activeSession;
+    if (options.storeNewTargets) {
+      sessionToSave = this.workoutSessionService.applyTargetUpdates(sessionToSave);
+    }
+
+    const workout = this.workoutSessionService.toWorkoutLog(sessionToSave);
+    await this.createWorkoutFile(workout);
+    await this.performanceCsvService.appendSession(sessionToSave);
+    if (options.storeNewTargets) {
+      await this.performanceCsvService.appendTargetUpdate(sessionToSave);
+    }
+
+    if (
+      sessionToSave.routineId &&
+      (options.persistRoutineChanges || options.storeNewTargets)
+    ) {
+      const routine = await this.definitionService.loadRoutineById(sessionToSave.routineId);
+      if (routine) {
+        const merged = this.workoutSessionService.mergeSessionIntoRoutine(
+          routine,
+          sessionToSave,
+          options
+        );
+        await this.definitionService.updateRoutineDefinition(merged);
+      }
+    }
+
+    this.activeSession = null;
+    if (this.sessionLeaf) {
+      await this.sessionLeaf.setViewState({ type: "empty" });
+      this.sessionLeaf = null;
+    }
+    new Notice("Workout finished and saved.");
+  }
+
+  async startWorkoutFromCurrentNote(): Promise<void> {
+    const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!markdownView?.file) {
+      new Notice("Open a routine or plan note first.");
+      return;
+    }
+
+    const file = markdownView.file;
+    const routine = await this.definitionService.loadRoutineFromFile(file);
+    if (routine) {
+      await this.startSessionFromRoutine(routine, true);
+      return;
+    }
+
+    const plan = await this.definitionService.loadPlanFromFile(file);
+    if (plan) {
+      const routines = await this.definitionService.loadRoutineDefinitions();
+      new PlanSelectionModal(this.app, [plan], routines, async (selectedPlan, selectedRoutine) => {
+        await this.startSessionFromRoutine(selectedRoutine, true, selectedPlan);
+      }).open();
+      return;
+    }
+
+    const exercise = await this.definitionService.loadExerciseFromFile(file);
+    if (exercise) {
+      const routineDef: RoutineDefinition = {
+        id: `single-${exercise.id}`,
+        name: exercise.name,
+        exercises: [
+          {
+            exerciseId: exercise.id,
+            exerciseName: exercise.name,
+            sets: Array.from({ length: exercise.defaultSets || 3 }).map(() => ({
+              reps: exercise.defaultReps,
+              weight: exercise.defaultWeight,
+              duration: exercise.defaultDuration,
+              distance: exercise.defaultDistance,
+            })),
+          },
+        ],
+      };
+      await this.startSessionFromRoutine(routineDef, true);
+      return;
+    }
+
+    new Notice("Current note is not a workout exercise, routine, or plan note.");
+  }
+
+  async migrateTemplatesToNotes(): Promise<void> {
+    await this.definitionService.ensureFolders();
+
+    let migratedExercises = 0;
+    let migratedRoutines = 0;
+
+    for (const template of this.settings.exerciseTemplates) {
+      const def: ExerciseDefinition = {
+        id: this.toId(template.name),
+        name: template.name,
+        type: template.type,
+        muscleGroups: template.muscleGroups,
+        defaultSets: template.defaultSets,
+        defaultReps: template.defaultReps,
+        defaultWeight: template.defaultWeight,
+        defaultDuration: template.defaultDuration,
+      };
+      await this.definitionService.createExerciseDefinition(def);
+      migratedExercises++;
+    }
+
+    for (const template of this.settings.workoutTemplates) {
+      const routine: RoutineDefinition = {
+        id: this.toId(template.name),
+        name: template.name,
+        estimatedDuration: template.estimatedDuration,
+        exercises: template.exercises.map((exerciseName) => ({
+          exerciseId: this.toId(exerciseName),
+          exerciseName,
+          exerciseLink: `[[${this.settings.exerciseLibraryFolder}/${exerciseName}]]`,
+          sets: [{ reps: 8, weight: 0 }],
+        })),
+      };
+      await this.definitionService.createRoutineDefinition(routine);
+      migratedRoutines++;
+    }
+
+    this.settings.migration = {
+      completed: true,
+      migratedAt: new Date().toISOString(),
+      exerciseCount: migratedExercises,
+      routineCount: migratedRoutines,
+    };
+    await this.saveSettings();
+    new Notice(
+      `Migration complete. Created ${migratedExercises} exercise notes and ${migratedRoutines} routine notes.`
+    );
+  }
+
+  private async openSessionView(preferPopout: boolean): Promise<void> {
+    let leaf: WorkspaceLeaf | null = null;
+    if (preferPopout) {
+      try {
+        leaf = this.app.workspace.getLeaf("window");
+      } catch (error) {
+        leaf = null;
+      }
+    }
+    if (!leaf) {
+      leaf = this.app.workspace.getLeaf(true);
+    }
+
+    this.sessionLeaf = leaf;
+    await leaf.setViewState({
+      type: WORKOUT_SESSION_VIEW_TYPE,
+      active: true,
+    });
+    this.app.workspace.revealLeaf(leaf);
+
+    const view = leaf.view;
+    if (view instanceof WorkoutSessionView && this.activeSession) {
+      view.setSession(this.activeSession);
+    }
+  }
+
+  private async createExerciseNoteFromPrompt(): Promise<void> {
+    const name = await this.prompt("Exercise name");
+    if (!name) return;
+    const definition: ExerciseDefinition = {
+      id: this.toId(name),
+      name,
+      type: "strength",
+      muscleGroups: [],
+      defaultSets: 3,
+      defaultReps: 8,
+    };
+    await this.definitionService.createExerciseDefinition(definition);
+    new Notice(`Exercise note created: ${name}`);
+  }
+
+  private async createRoutineNoteFromPrompt(): Promise<void> {
+    const name = await this.prompt("Routine name");
+    if (!name) return;
+    const routine: RoutineDefinition = {
+      id: this.toId(name),
+      name,
+      exercises: [],
+      estimatedDuration: 60,
+    };
+    await this.definitionService.createRoutineDefinition(routine);
+    new Notice(`Routine note created: ${name}`);
+  }
+
+  private async createPlanNoteFromPrompt(): Promise<void> {
+    const name = await this.prompt("Workout plan name");
+    if (!name) return;
+    const plan: WorkoutPlanDefinition = {
+      id: this.toId(name),
+      name,
+      routines: [],
+    };
+    await this.definitionService.createWorkoutPlanDefinition(plan);
+    new Notice(`Workout plan note created: ${name}`);
+  }
+
+  private prompt(label: string): Promise<string | null> {
+    return new Promise((resolve) => {
+      // eslint-disable-next-line no-alert
+      const value = window.prompt(label);
+      resolve(value ? value.trim() : null);
+    });
+  }
+
+  private toId(name: string): string {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  }
+
+  private handleFileModify(file: TFile): void {
+    if (!this.settings.enableAutoSyncFrontmatter) {
+      return;
+    }
     if (file.extension !== "md") {
       return;
     }
 
-    // Clear existing timeout for this file
     const existingTimeout = this.syncTimeouts.get(file.path);
     if (existingTimeout) {
       clearTimeout(existingTimeout);
     }
 
-    // Set a new timeout to sync after user stops typing
     const timeout = setTimeout(async () => {
       try {
-        // Check if this is a workout file
         const isWorkout = await this.fileService.isWorkoutFile(file);
         if (!isWorkout) {
           return;
         }
-
-        // Sync frontmatter with file content
-        const wasUpdated = await this.fileService.syncFrontmatterWithContent(
-          file
-        );
+        const wasUpdated = await this.fileService.syncFrontmatterWithContent(file);
         if (wasUpdated) {
           console.log(`Auto-synced frontmatter for: ${file.path}`);
         }
       } catch (error) {
         console.error(`Error syncing frontmatter for ${file.path}:`, error);
       } finally {
-        // Remove the timeout from the map
         this.syncTimeouts.delete(file.path);
       }
-    }, this.settings.autoSyncDelayMs); // Use configurable delay
+    }, this.settings.autoSyncDelayMs);
 
     this.syncTimeouts.set(file.path, timeout);
   }

@@ -6,6 +6,10 @@ import {
 
 export const DEFAULT_SETTINGS: WorkoutTrackerSettings = {
   defaultWorkoutFolder: "Workouts",
+  exerciseLibraryFolder: "Workout Library/Exercises",
+  routinesFolder: "Workout Library/Routines",
+  workoutPlansFolder: "Workout Library/Plans",
+  performanceCsvPath: "Workouts/workout-performance.csv",
   exerciseTemplates: [
     {
       name: "Push-up",
@@ -42,4 +46,9 @@ export const DEFAULT_SETTINGS: WorkoutTrackerSettings = {
   // Delay in milliseconds before syncing frontmatter after manual edits in a workout file
   autoSyncDelayMs: 2000,
   dateFormat: "YYYY-MM-DD",
+  migration: {
+    completed: false,
+    exerciseCount: 0,
+    routineCount: 0,
+  },
 };
