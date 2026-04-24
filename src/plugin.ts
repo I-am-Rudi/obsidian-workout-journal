@@ -560,7 +560,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
   private createIdFromName(name: string): string {
     const normalized = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     const trimmed = normalized.replace(/^-+|-+$/g, "");
-    return trimmed || `workout-${Date.now()}`;
+    return trimmed || `workout-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
   }
 
   private handleFileModify(file: TFile): void {
