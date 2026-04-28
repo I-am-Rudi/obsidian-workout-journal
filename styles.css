@@ -220,3 +220,23 @@
     font-size: 12px;
     padding: 4px 6px;
 }
+
+.workout-session-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.workout-session-remove-set {
+    background: none;
+    border: none;
+    color: var(--text-error);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    line-height: 1;
+}
+
+.workout-session-remove-set:hover {
+    background-color: var(--background-modifier-error);
+}
