@@ -1,6 +1,7 @@
 import { ItemView, Notice, Platform, Setting, WorkspaceLeaf } from "obsidian";
 import WorkoutTrackerPlugin from "../plugin";
 import { SessionFinishOptions, WorkoutSession, WorkoutSessionExercise, WorkoutSessionSet } from "../types";
+import { AddSessionExerciseModal } from "../modals/AddSessionExerciseModal";
 
 export const WORKOUT_SESSION_VIEW_TYPE = "workout-tracker-session-view";
 
@@ -53,9 +54,62 @@ export class WorkoutSessionView extends ItemView {
       }${this.session.planName ? ` • Plan: ${this.session.planName}` : ""}`
     );
 
-    this.session.exercises.forEach((exercise) => {
+    this.session.exercises.forEach((exercise, exerciseIndex) => {
       const card = contentEl.createDiv({ cls: "workout-session-card" });
-      card.createEl("h3", { text: exercise.exerciseName });
+
+      // Exercise header with name and management controls
+      const cardHeader = card.createDiv({ cls: "workout-session-card-header" });
+      cardHeader.createEl("h3", { text: exercise.exerciseName });
+
+      const exerciseControls = cardHeader.createDiv({ cls: "workout-session-exercise-controls" });
+
+      // Move Up button
+      const moveUpBtn = exerciseControls.createEl("button", {
+        text: "↑",
+        cls: "workout-session-exercise-move",
+        title: "Move exercise up",
+      });
+      moveUpBtn.disabled = exerciseIndex === 0;
+      moveUpBtn.onclick = () => {
+        if (exerciseIndex === 0) return;
+        const exercises = this.session!.exercises;
+        [exercises[exerciseIndex - 1], exercises[exerciseIndex]] = [
+          exercises[exerciseIndex],
+          exercises[exerciseIndex - 1],
+        ];
+        this.session!.hasRoutineChanges = true;
+        this.render();
+      };
+
+      // Move Down button
+      const moveDownBtn = exerciseControls.createEl("button", {
+        text: "↓",
+        cls: "workout-session-exercise-move",
+        title: "Move exercise down",
+      });
+      moveDownBtn.disabled = exerciseIndex === this.session.exercises.length - 1;
+      moveDownBtn.onclick = () => {
+        const exercises = this.session!.exercises;
+        if (exerciseIndex >= exercises.length - 1) return;
+        [exercises[exerciseIndex], exercises[exerciseIndex + 1]] = [
+          exercises[exerciseIndex + 1],
+          exercises[exerciseIndex],
+        ];
+        this.session!.hasRoutineChanges = true;
+        this.render();
+      };
+
+      // Remove Exercise button
+      const removeExerciseBtn = exerciseControls.createEl("button", {
+        text: "✕",
+        cls: "workout-session-remove-exercise",
+        title: "Remove exercise",
+      });
+      removeExerciseBtn.onclick = () => {
+        this.session!.exercises.splice(exerciseIndex, 1);
+        this.session!.hasRoutineChanges = true;
+        this.render();
+      };
 
       if (Platform.isMobile) {
         const setsWrapper = card.createDiv({ cls: "workout-session-sets-mobile" });
@@ -145,6 +199,20 @@ export class WorkoutSessionView extends ItemView {
         })
       );
     });
+
+    // Add Exercise button
+    new Setting(contentEl)
+      .setName("Exercises")
+      .addButton((btn) =>
+        btn.setButtonText("Add Exercise").onClick(async () => {
+          const exercises = await this.plugin.definitionService.loadExerciseDefinitions();
+          new AddSessionExerciseModal(this.app, exercises, (newExercise) => {
+            this.session!.exercises.push(newExercise);
+            this.session!.hasRoutineChanges = true;
+            this.render();
+          }).open();
+        })
+      );
 
     new Setting(contentEl)
       .setName("Workout Notes")

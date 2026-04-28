@@ -131,23 +131,21 @@ export class WorkoutSessionService {
     session: WorkoutSession,
     finishOptions: SessionFinishOptions
   ): RoutineDefinition {
-    const byExerciseId = new Map(session.exercises.map((exercise) => [exercise.exerciseId, exercise]));
-    const nextExercises = routine.exercises.map((entry) => {
-      const sessionExercise = byExerciseId.get(entry.exerciseId);
-      if (!sessionExercise) {
-        return entry;
-      }
+    // "ignore" keeps the original routine exercise list; only target values on
+    // matching exercises may be refreshed when storeNewTargets is enabled.
+    // "overwrite" and "create_new" adopt the session's exercise order/list so
+    // that exercises added, removed, or reordered during the session are
+    // reflected in the resulting routine definition.
+    const allowStructureChanges = finishOptions.routineChangeStrategy !== "ignore";
 
-      // "ignore" keeps the original routine structure, but still allows target
-      // value refreshes on existing sets when storeNewTargets is enabled.
-      // "overwrite" and "create_new" both adopt session structure (set count/order);
-      // the caller decides whether that merged result replaces the current routine
-      // or gets saved as a new routine definition.
-      const allowStructureChanges = finishOptions.routineChangeStrategy !== "ignore";
-      const limit = allowStructureChanges ? sessionExercise.sets.length : entry.sets.length;
+    const buildSets = (
+      sessionExercise: WorkoutSessionExercise,
+      existingSets: { reps?: number; weight?: number; duration?: number; distance?: number; restTime?: number }[]
+    ) => {
+      const limit = allowStructureChanges ? sessionExercise.sets.length : existingSets.length;
       const sets = [];
       for (let i = 0; i < limit; i++) {
-        const existing = entry.sets[i] || {};
+        const existing = existingSets[i] || {};
         const fromSession = sessionExercise.sets[i];
         if (!fromSession) {
           sets.push(existing);
@@ -167,17 +165,46 @@ export class WorkoutSessionService {
           restTime: fromSession.restTime ?? existing.restTime,
         });
       }
+      return sets;
+    };
 
+    if (allowStructureChanges) {
+      // Use the session's exercise list as the authoritative source so that
+      // exercises added, removed, or reordered during the session are preserved.
+      const routineByExerciseId = new Map(
+        routine.exercises.map((entry) => [entry.exerciseId, entry])
+      );
+      const nextExercises = session.exercises.map((sessionExercise) => {
+        const existing = routineByExerciseId.get(sessionExercise.exerciseId);
+        const sets = buildSets(sessionExercise, existing?.sets ?? []);
+        return existing
+          ? { ...existing, notes: sessionExercise.notes, sets }
+          : {
+              exerciseId: sessionExercise.exerciseId,
+              exerciseName: sessionExercise.exerciseName,
+              sets,
+              notes: sessionExercise.notes,
+            };
+      });
+      return { ...routine, exercises: nextExercises };
+    }
+
+    // "ignore" strategy: keep routine exercise list but refresh target values.
+    const byExerciseId = new Map(
+      session.exercises.map((exercise) => [exercise.exerciseId, exercise])
+    );
+    const nextExercises = routine.exercises.map((entry) => {
+      const sessionExercise = byExerciseId.get(entry.exerciseId);
+      if (!sessionExercise) {
+        return entry;
+      }
       return {
         ...entry,
         notes: sessionExercise.notes,
-        sets,
+        sets: buildSets(sessionExercise, entry.sets),
       };
     });
 
-    return {
-      ...routine,
-      exercises: nextExercises,
-    };
+    return { ...routine, exercises: nextExercises };
   }
 }

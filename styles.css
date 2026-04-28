@@ -254,6 +254,100 @@
     background-color: var(--background-modifier-error);
 }
 
+/* Exercise card header with management controls */
+.workout-session-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.workout-session-card-header h3 {
+    margin: 0;
+    flex: 1;
+}
+
+.workout-session-exercise-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.workout-session-exercise-move {
+    background: none;
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    line-height: 1.4;
+}
+
+.workout-session-exercise-move:hover:not(:disabled) {
+    background-color: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+.workout-session-exercise-move:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.workout-session-remove-exercise {
+    background: none;
+    border: none;
+    color: var(--text-error);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    line-height: 1;
+    margin-left: 4px;
+}
+
+.workout-session-remove-exercise:hover {
+    background-color: var(--background-modifier-error);
+}
+
+/* Add Exercise modal list */
+.workout-add-exercise-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 8px;
+}
+
+.workout-add-exercise-item {
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.workout-add-exercise-item:last-child {
+    border-bottom: none;
+}
+
+.workout-add-exercise-item:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.workout-add-exercise-name {
+    font-weight: 500;
+}
+
+.workout-add-exercise-muscles {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.workout-add-exercise-empty {
+    color: var(--text-muted);
+    text-align: center;
+    padding: 16px;
+}
+
 /* Mobile layout: set cards (480px and below) */
 @media (max-width: 480px) {
     /* Set editor inputs fill available space proportionally but stay compact */
