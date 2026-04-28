@@ -57,13 +57,14 @@ export class WorkoutSessionView extends ItemView {
       const card = contentEl.createDiv({ cls: "workout-session-card" });
       card.createEl("h3", { text: exercise.exerciseName });
 
-      const table = card.createEl("table", { cls: "workout-session-table" });
+      const tableWrapper = card.createDiv({ cls: "workout-session-table-wrapper" });
+      const table = tableWrapper.createEl("table", { cls: "workout-session-table" });
       const header = table.createEl("tr");
-      ["Set", "Prev", "Target", "Actual", "Done"].forEach((label) => {
+      ["Set", "Prev", "Target", "Actual", "Done", ""].forEach((label) => {
         header.createEl("th", { text: label });
       });
 
-      exercise.sets.forEach((set) => {
+      exercise.sets.forEach((set, index) => {
         const row = table.createEl("tr", {
           cls: set.completed ? "workout-session-row-completed" : "",
         });
@@ -96,6 +97,15 @@ export class WorkoutSessionView extends ItemView {
           set.completed = done.checked;
           exercise.completed = exercise.sets.every((exerciseSet) => exerciseSet.completed);
           row.toggleClass("workout-session-row-completed", set.completed);
+        };
+
+        const removeCell = row.createEl("td");
+        const removeBtn = removeCell.createEl("button", { text: "✕", cls: "workout-session-remove-set" });
+        removeBtn.onclick = () => {
+          exercise.sets.splice(index, 1);
+          exercise.sets.forEach((s, i) => { s.setIndex = i + 1; });
+          this.session!.hasRoutineChanges = true;
+          this.render();
         };
       });
 
@@ -178,7 +188,9 @@ export class WorkoutSessionView extends ItemView {
       onChange(nextWeight, nextReps);
     };
 
+    weightInput.oninput = update;
     weightInput.onchange = update;
+    repsInput.oninput = update;
     repsInput.onchange = update;
   }
 
