@@ -335,11 +335,14 @@
 
 .workout-add-exercise-name {
     font-weight: 500;
+    display: block;
 }
 
 .workout-add-exercise-muscles {
     color: var(--text-muted);
     font-size: 12px;
+    display: block;
+    margin-top: 2px;
 }
 
 .workout-add-exercise-empty {

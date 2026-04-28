@@ -1,6 +1,8 @@
 import { App, Modal, Setting } from "obsidian";
 import { ExerciseDefinition, WorkoutSessionExercise } from "../types";
 
+const DEFAULT_NUM_SETS = 3;
+
 export class AddSessionExerciseModal extends Modal {
   private exercises: ExerciseDefinition[];
   private onAdd: (exercise: WorkoutSessionExercise) => void;
@@ -51,10 +53,10 @@ export class AddSessionExerciseModal extends Modal {
 
     filtered.forEach((ex) => {
       const item = this.listEl.createDiv({ cls: "workout-add-exercise-item" });
-      const nameEl = item.createEl("span", { text: ex.name, cls: "workout-add-exercise-name" });
+      item.createEl("span", { text: ex.name, cls: "workout-add-exercise-name" });
       if (ex.muscleGroups?.length) {
-        nameEl.createEl("small", {
-          text: ` — ${ex.muscleGroups.join(", ")}`,
+        item.createEl("small", {
+          text: ex.muscleGroups.join(", "),
           cls: "workout-add-exercise-muscles",
         });
       }
@@ -66,7 +68,7 @@ export class AddSessionExerciseModal extends Modal {
   }
 
   private buildSessionExercise(ex: ExerciseDefinition): WorkoutSessionExercise {
-    const numSets = ex.defaultSets ?? 3;
+    const numSets = ex.defaultSets ?? DEFAULT_NUM_SETS;
     const sets = Array.from({ length: numSets }, (_, i) => ({
       setIndex: i + 1,
       targetReps: ex.defaultReps,
