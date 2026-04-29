@@ -23,7 +23,7 @@ import { WorkoutFileService } from "./utils/workoutFileService";
 import { DefinitionFileService } from "./utils/definitionFileService";
 import { PerformanceCsvService } from "./utils/performanceCsvService";
 import { WorkoutSessionService } from "./utils/workoutSessionService";
-import { generateId } from "./utils/idUtils";
+import { generateId, createIdFromName } from "./utils/idUtils";
 import {
   ExerciseTemplateModal,
   InputPromptModal,
@@ -301,11 +301,18 @@ export default class WorkoutTrackerPlugin extends Plugin {
     if (resolved.warnings.length) {
       new Notice(resolved.warnings.join("\n"));
     }
+    const exerciseDefs = await this.definitionService.loadExerciseDefinitions();
+    const exerciseNotesMap = new Map(
+      exerciseDefs
+        .filter((def) => def.notes)
+        .map((def) => [def.id, def.notes!])
+    );
     const session = await this.workoutSessionService.createSessionFromRoutine(
       resolved.resolved,
       {
         planId: plan?.id,
         planName: plan?.name,
+        exerciseNotesMap,
       }
     );
     this.activeSession = session;
@@ -559,9 +566,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
   }
 
   private createIdFromName(name: string): string {
-    const normalized = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    const trimmed = normalized.replace(/^-+|-+$/g, "");
-    return trimmed || `workout-${generateId()}`;
+    return createIdFromName(name);
   }
 
   private handleFileModify(file: TFile): void {

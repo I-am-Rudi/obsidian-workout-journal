@@ -1,9 +1,12 @@
-import { App, Modal, Setting } from "obsidian";
+import { App, Modal, Notice, Setting } from "obsidian";
 import { ExerciseDefinition, WorkoutSessionExercise } from "../types";
+import WorkoutTrackerPlugin from "../plugin";
+import { createIdFromName } from "../utils/idUtils";
 
 const DEFAULT_NUM_SETS = 3;
 
 export class AddSessionExerciseModal extends Modal {
+  private plugin: WorkoutTrackerPlugin;
   private exercises: ExerciseDefinition[];
   private onAdd: (exercise: WorkoutSessionExercise) => void;
   private searchQuery = "";
@@ -11,10 +14,12 @@ export class AddSessionExerciseModal extends Modal {
 
   constructor(
     app: App,
+    plugin: WorkoutTrackerPlugin,
     exercises: ExerciseDefinition[],
     onAdd: (exercise: WorkoutSessionExercise) => void
   ) {
     super(app);
+    this.plugin = plugin;
     this.exercises = exercises;
     this.onAdd = onAdd;
   }
@@ -26,7 +31,7 @@ export class AddSessionExerciseModal extends Modal {
 
     new Setting(contentEl).setName("Search").addText((text) => {
       text.setPlaceholder("Type to filter exercises…").onChange((value) => {
-        this.searchQuery = value.toLowerCase();
+        this.searchQuery = value;
         this.renderList();
       });
       // Auto-focus the search field
@@ -39,15 +44,25 @@ export class AddSessionExerciseModal extends Modal {
 
   private renderList() {
     this.listEl.empty();
+    const q = this.searchQuery.toLowerCase();
     const filtered = this.exercises.filter(
       (ex) =>
-        !this.searchQuery ||
-        ex.name.toLowerCase().includes(this.searchQuery) ||
-        ex.muscleGroups.some((mg) => mg.toLowerCase().includes(this.searchQuery))
+        !q ||
+        ex.name.toLowerCase().includes(q) ||
+        ex.muscleGroups.some((mg) => mg.toLowerCase().includes(q))
     );
 
     if (filtered.length === 0) {
       this.listEl.createEl("p", { text: "No exercises found.", cls: "workout-add-exercise-empty" });
+      if (this.searchQuery.trim()) {
+        const createBtn = this.listEl.createEl("button", {
+          text: `Create "${this.searchQuery.trim()}" as new exercise`,
+          cls: "workout-add-exercise-create-new",
+        });
+        createBtn.onclick = async () => {
+          await this.createAndAddExercise(this.searchQuery.trim());
+        };
+      }
       return;
     }
 
@@ -67,6 +82,22 @@ export class AddSessionExerciseModal extends Modal {
     });
   }
 
+  private async createAndAddExercise(name: string): Promise<void> {
+    const id = createIdFromName(name);
+    const def: ExerciseDefinition = {
+      id,
+      name,
+      type: "strength",
+      muscleGroups: [],
+      defaultSets: DEFAULT_NUM_SETS,
+      defaultReps: 8,
+    };
+    await this.plugin.definitionService.createExerciseDefinition(def);
+    new Notice(`Exercise note created: ${name}`);
+    this.onAdd(this.buildSessionExercise(def));
+    this.close();
+  }
+
   private buildSessionExercise(ex: ExerciseDefinition): WorkoutSessionExercise {
     const numSets = ex.defaultSets ?? DEFAULT_NUM_SETS;
     const sets = Array.from({ length: numSets }, (_, i) => ({
@@ -84,6 +115,7 @@ export class AddSessionExerciseModal extends Modal {
       exerciseName: ex.name,
       sets,
       completed: false,
+      exerciseNotes: ex.notes || undefined,
     };
   }
 

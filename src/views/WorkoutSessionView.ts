@@ -111,6 +111,16 @@ export class WorkoutSessionView extends ItemView {
         this.render();
       };
 
+      // Exercise-level notes (global, from the exercise definition) – read-only
+      if (exercise.exerciseNotes) {
+        const noteBlock = card.createDiv({ cls: "workout-session-exercise-notes" });
+        noteBlock.createEl("span", {
+          text: "📝 Exercise Note: ",
+          cls: "workout-session-exercise-notes-label",
+        });
+        noteBlock.createEl("span", { text: exercise.exerciseNotes });
+      }
+
       if (Platform.isMobile) {
         const setsWrapper = card.createDiv({ cls: "workout-session-sets-mobile" });
         exercise.sets.forEach((set, index) => {
@@ -198,6 +208,20 @@ export class WorkoutSessionView extends ItemView {
           this.render();
         })
       );
+
+      // Routine-specific exercise notes (editable)
+      new Setting(card)
+        .setName("Routine Notes")
+        .setClass("workout-session-routine-notes-setting")
+        .addTextArea((text) =>
+          text
+            .setPlaceholder("Notes for this exercise in this routine…")
+            .setValue(exercise.notes || "")
+            .onChange((value) => {
+              exercise.notes = value || undefined;
+              this.session!.hasRoutineChanges = true;
+            })
+        );
     });
 
     // Add Exercise button
@@ -206,7 +230,7 @@ export class WorkoutSessionView extends ItemView {
       .addButton((btn) =>
         btn.setButtonText("Add Exercise").onClick(async () => {
           const exercises = await this.plugin.definitionService.loadExerciseDefinitions();
-          new AddSessionExerciseModal(this.app, exercises, (newExercise) => {
+          new AddSessionExerciseModal(this.app, this.plugin, exercises, (newExercise) => {
             this.session!.exercises.push(newExercise);
             this.session!.hasRoutineChanges = true;
             this.render();
