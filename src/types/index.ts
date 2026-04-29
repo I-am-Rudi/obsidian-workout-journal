@@ -145,6 +145,7 @@ export interface WorkoutSessionExercise {
   sets: WorkoutSessionSet[];
   completed: boolean;
   notes?: string;
+  exerciseNotes?: string;
 }
 
 export interface WorkoutSession {

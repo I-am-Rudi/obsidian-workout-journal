@@ -301,11 +301,18 @@ export default class WorkoutTrackerPlugin extends Plugin {
     if (resolved.warnings.length) {
       new Notice(resolved.warnings.join("\n"));
     }
+    const exerciseDefs = await this.definitionService.loadExerciseDefinitions();
+    const exerciseNotesMap = new Map(
+      exerciseDefs
+        .filter((def) => def.notes)
+        .map((def) => [def.id, def.notes!])
+    );
     const session = await this.workoutSessionService.createSessionFromRoutine(
       resolved.resolved,
       {
         planId: plan?.id,
         planName: plan?.name,
+        exerciseNotesMap,
       }
     );
     this.activeSession = session;
