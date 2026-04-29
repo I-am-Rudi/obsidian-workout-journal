@@ -9,3 +9,4 @@ export { RoutineSelectionModal } from "./RoutineSelectionModal";
 export { PlanSelectionModal } from "./PlanSelectionModal";
 export { SessionFinishModal } from "./SessionFinishModal";
 export { InputPromptModal } from "./InputPromptModal";
+export { AddSessionExerciseModal } from "./AddSessionExerciseModal";

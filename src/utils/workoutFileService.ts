@@ -111,7 +111,9 @@ export class WorkoutFileService {
   }
 
   /**
-   * Check if a file is a workout file by checking for workoutTracker frontmatter
+   * Check if a file is a workout file by checking for workoutTrackerType === "workout" in frontmatter.
+   * Routine and plan notes also carry workoutTracker: true, so we must use the type discriminator
+   * to avoid mistakenly re-processing them as workout logs.
    */
   async isWorkoutFile(file: TFile): Promise<boolean> {
     try {
@@ -120,7 +122,7 @@ export class WorkoutFileService {
       if (!frontmatterMatch) return false;
 
       const frontmatter = parseYaml(frontmatterMatch[1]);
-      return frontmatter?.workoutTracker === true;
+      return frontmatter?.workoutTrackerType === "workout";
     } catch (error) {
       return false;
     }
