@@ -5,6 +5,12 @@ import {
   WorkoutStatistics,
 } from "../utils/workoutStatisticsService";
 import WorkoutTrackerPlugin from "../plugin";
+import {
+  renderBarChart,
+  renderHorizontalBarChart,
+  renderLineChart,
+  FREQUENCY_UNIT,
+} from "../utils/chartRenderer";
 
 export class WorkoutStatsModal extends Modal {
   plugin: WorkoutTrackerPlugin;
@@ -77,20 +83,93 @@ export class WorkoutStatsModal extends Modal {
       .setName("Last Workout")
       .setDesc(stats.lastWorkoutDate || "No workouts yet");
 
-    // Exercise Frequency
+    // Monthly Workouts Chart
+    const monthlyCounts = this.statisticsService.getMonthlyWorkoutCounts(
+      Object.values(stats.workoutsByDate).flat()
+    );
+    const sortedMonths = Object.keys(monthlyCounts).sort().slice(-12);
+
+    if (sortedMonths.length > 0) {
+      const monthlySection = container.createDiv({ cls: "wt-chart-section" });
+      monthlySection.createEl("h3", { text: "Monthly Workouts" });
+      const chartContainer = monthlySection.createDiv({
+        cls: "wt-chart-container",
+      });
+      renderBarChart(
+        chartContainer,
+        sortedMonths.map((m) => {
+          // Format "YYYY-MM" → "Mon 'YY" for compact labels
+          const [year, month] = m.split("-");
+          const date = new Date(Number(year), Number(month) - 1, 1);
+          return date.toLocaleDateString(undefined, {
+            month: "short",
+            year: "2-digit",
+          });
+        }),
+        sortedMonths.map((m) => monthlyCounts[m]),
+        { yLabel: "Workouts" }
+      );
+    }
+
+    // Monthly Volume Line Chart
+    const monthlyVolume: Record<string, number> = {};
+    Object.values(stats.workoutsByDate)
+      .flat()
+      .forEach((workout) => {
+        const month = workout.date.substring(0, 7);
+        workout.exercises.forEach((ex) => {
+          ex.sets.forEach((set) => {
+            if (set.weight && set.reps) {
+              monthlyVolume[month] =
+                (monthlyVolume[month] || 0) + set.weight * set.reps;
+            }
+          });
+        });
+      });
+
+    const volumeMonths = Object.keys(monthlyVolume).sort().slice(-12);
+    if (volumeMonths.length >= 2) {
+      const volumeSection = container.createDiv({ cls: "wt-chart-section" });
+      volumeSection.createEl("h3", { text: "Monthly Volume" });
+      const chartContainer = volumeSection.createDiv({
+        cls: "wt-chart-container",
+      });
+      renderLineChart(
+        chartContainer,
+        volumeMonths.map((m) => {
+          const [year, month] = m.split("-");
+          const date = new Date(Number(year), Number(month) - 1, 1);
+          return date.toLocaleDateString(undefined, {
+            month: "short",
+            year: "2-digit",
+          });
+        }),
+        volumeMonths.map((m) => monthlyVolume[m]),
+        {
+          yLabel: this.plugin.settings.weightUnit,
+          unit: this.plugin.settings.weightUnit,
+        }
+      );
+    }
+
+    // Exercise Frequency Chart
     if (Object.keys(stats.exerciseFrequency).length > 0) {
-      const frequencySection = container.createDiv();
+      const frequencySection = container.createDiv({ cls: "wt-chart-section" });
       frequencySection.createEl("h3", { text: "Exercise Frequency" });
 
       const sortedExercises = Object.entries(stats.exerciseFrequency)
         .sort(([, a], [, b]) => b - a)
-        .slice(0, 10); // Top 10 exercises
+        .slice(0, 10);
 
-      sortedExercises.forEach(([exercise, count]) => {
-        new Setting(frequencySection)
-          .setName(exercise)
-          .setDesc(`${count} time${count !== 1 ? "s" : ""}`);
+      const chartContainer = frequencySection.createDiv({
+        cls: "wt-chart-container",
       });
+      renderHorizontalBarChart(
+        chartContainer,
+        sortedExercises.map(([name]) => name),
+        sortedExercises.map(([, count]) => count),
+        { unit: FREQUENCY_UNIT }
+      );
     }
 
     // Personal Records

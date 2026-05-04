@@ -154,6 +154,82 @@
     background-color: var(--background-modifier-hover);
 }
 
+/* ── Chart styles ──────────────────────────────────────────── */
+
+.wt-chart-section {
+    margin: 16px 0;
+}
+
+.wt-chart-container {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    background: var(--background-secondary);
+    padding: 12px 8px 8px;
+    overflow: hidden;
+}
+
+.wt-chart-svg {
+    display: block;
+}
+
+.wt-chart-title {
+    fill: var(--text-normal);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.wt-chart-axis-label {
+    fill: var(--text-muted);
+    font-size: 11px;
+}
+
+.wt-chart-tick-label {
+    fill: var(--text-muted);
+    font-size: 11px;
+}
+
+.wt-chart-axis-line {
+    stroke: var(--background-modifier-border);
+    stroke-width: 1;
+}
+
+.wt-chart-grid-line {
+    stroke: var(--background-modifier-border);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+    opacity: 0.6;
+}
+
+.wt-chart-bar {
+    fill: var(--interactive-accent);
+    opacity: 0.85;
+}
+
+.wt-chart-bar-value {
+    fill: var(--text-on-accent);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.wt-chart-row-bg {
+    fill: var(--background-primary);
+    opacity: 0.5;
+}
+
+.wt-chart-line {
+    stroke: var(--interactive-accent);
+    stroke-width: 2;
+}
+
+.wt-chart-area {
+    fill: var(--interactive-accent);
+    opacity: 0.15;
+}
+
+.wt-chart-dot {
+    fill: var(--interactive-accent);
+}
+
 /* Custom button styles */
 .workout-tracker-button {
     background-color: var(--interactive-accent);
