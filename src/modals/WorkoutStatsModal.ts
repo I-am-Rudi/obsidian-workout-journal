@@ -9,6 +9,7 @@ import {
   renderBarChart,
   renderHorizontalBarChart,
   renderLineChart,
+  FREQUENCY_UNIT,
 } from "../utils/chartRenderer";
 
 export class WorkoutStatsModal extends Modal {
@@ -167,7 +168,7 @@ export class WorkoutStatsModal extends Modal {
         chartContainer,
         sortedExercises.map(([name]) => name),
         sortedExercises.map(([, count]) => count),
-        { unit: "×" }
+        { unit: FREQUENCY_UNIT }
       );
     }
 

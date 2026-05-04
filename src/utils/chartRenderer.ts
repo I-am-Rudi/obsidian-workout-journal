@@ -2,6 +2,10 @@
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
+const MAX_LABEL_CHARS = 22;
+const MAX_X_AXIS_LABELS = 10;
+export const FREQUENCY_UNIT = "×";
+
 function svgEl<K extends keyof SVGElementTagNameMap>(
   tag: K,
   attrs: Record<string, string | number> = {}
@@ -249,7 +253,7 @@ export function renderHorizontalBarChart(
       "text-anchor": "end",
       class: "wt-chart-tick-label",
     });
-    lbl.textContent = label.length > 22 ? label.slice(0, 21) + "…" : label;
+    lbl.textContent = label.length > MAX_LABEL_CHARS ? label.slice(0, MAX_LABEL_CHARS - 1) + "…" : label;
     svg.appendChild(lbl);
 
     // Bar
@@ -444,7 +448,7 @@ export function renderLineChart(
     svg.appendChild(g);
 
     // X-axis label (every Nth to avoid crowding)
-    const skipEvery = Math.ceil(n / 10);
+    const skipEvery = Math.ceil(n / MAX_X_AXIS_LABELS);
     if (i % skipEvery === 0 || i === n - 1) {
       const xl = svgEl("text", {
         x: cx,
