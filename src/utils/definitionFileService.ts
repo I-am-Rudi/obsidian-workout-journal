@@ -266,7 +266,14 @@ export class DefinitionFileService {
 
   private async ensureFolder(path: string): Promise<void> {
     if (!this.app.vault.getAbstractFileByPath(path)) {
-      await this.app.vault.createFolder(path);
+      try {
+        await this.app.vault.createFolder(path);
+      } catch {
+        // Vault cache may have been stale (common on iOS startup); re-check.
+        if (!this.app.vault.getAbstractFileByPath(path)) {
+          throw new Error(`Workout Tracker: failed to create folder "${path}"`);
+        }
+      }
     }
   }
 
