@@ -358,14 +358,16 @@ export class DefinitionFileService {
     }
     const weightUnit = this.settings.weightUnit || "kg";
     for (const exercise of exercises) {
-      // Build heading: use exerciseLink with alias if available, else plain name
+      // Build heading: use exerciseLink with alias if available, else plain name.
+      // The pipe in [[path|Name]] is safe in heading context (not a table cell),
+      // so no escaping is needed here.
       const heading = exercise.exerciseLink
         ? exercise.exerciseLink.replace(/\]\]$/, `|${exercise.exerciseName}]]`)
         : exercise.exerciseName;
       content += `### ${heading}\n\n`;
       if (exercise.sets.length > 0) {
         content += `| Set | Reps | Weight (${weightUnit}) | Duration | Distance | Rest |\n`;
-        content += `|-----|------|${"".padEnd(10 + weightUnit.length, "-")}|----------|----------|------|\n`;
+        content += `|-----|------|----------|----------|----------|------|\n`;
         exercise.sets.forEach((set, i) => {
           content += `| ${i + 1} | ${set.reps ?? "-"} | ${set.weight ?? "-"} | ${set.duration ?? "-"} | ${set.distance ?? "-"} | ${set.restTime ?? "-"} |\n`;
         });
