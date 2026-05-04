@@ -48,9 +48,26 @@ export class PerformanceCsvService {
 
     const folderPath = this.csvPath.split("/").slice(0, -1).join("/");
     if (folderPath && !this.app.vault.getAbstractFileByPath(folderPath)) {
-      await this.app.vault.createFolder(folderPath);
+      try {
+        await this.app.vault.createFolder(folderPath);
+      } catch {
+        // Vault cache may have been stale (common on iOS startup); re-check.
+        if (!this.app.vault.getAbstractFileByPath(folderPath)) {
+          throw new Error(`Workout Tracker: failed to create folder "${folderPath}"`);
+        }
+      }
     }
-    return this.app.vault.create(this.csvPath, `${this.header}\n`);
+    try {
+      return await this.app.vault.create(this.csvPath, `${this.header}\n`);
+    } catch {
+      // File may already exist due to stale vault cache; recover if possible.
+      const existing = this.app.vault.getAbstractFileByPath(this.csvPath);
+      if (existing instanceof TFile) return existing;
+      throw new Error(
+        `Workout Tracker: failed to create performance CSV at "${this.csvPath}". ` +
+        `A non-file entry may already exist at that path.`
+      );
+    }
   }
 
   async appendSession(session: WorkoutSession): Promise<void> {

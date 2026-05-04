@@ -5,6 +5,7 @@ import {
   MarkdownFileInfo,
   MarkdownView,
   Notice,
+  Platform,
   Plugin,
   TFile,
   WorkspaceLeaf,
@@ -72,9 +73,6 @@ export default class WorkoutTrackerPlugin extends Plugin {
       this.performanceCsvService
     );
 
-    await this.definitionService.ensureFolders();
-    await this.performanceCsvService.ensureFile();
-
     this.registerView(
       WORKOUT_SESSION_VIEW_TYPE,
       (leaf) => new WorkoutSessionView(leaf, this)
@@ -94,6 +92,11 @@ export default class WorkoutTrackerPlugin extends Plugin {
       }
     );
     ribbonIconEl.addClass("workout-tracker-ribbon-class");
+
+    this.app.workspace.onLayoutReady(async () => {
+      await this.definitionService.ensureFolders();
+      await this.performanceCsvService.ensureFile();
+    });
 
     this.addCommand({
       id: "create-new-workout",
@@ -492,7 +495,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
 
   private async openSessionView(preferPopout: boolean): Promise<void> {
     let leaf: WorkspaceLeaf | null = null;
-    if (preferPopout) {
+    if (preferPopout && !Platform.isMobile) {
       try {
         leaf = this.app.workspace.getLeaf("window");
       } catch (error) {

@@ -1,4 +1,4 @@
-import WorkoutTrackerPlugin from "main";
+import WorkoutTrackerPlugin from "../plugin";
 import { App, Modal, Setting } from "obsidian";
 import { WorkoutModal } from "./WorkoutModal";
 import { QuickWorkoutModal } from "./QuickWorkoutModal";
