@@ -197,7 +197,7 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
     containerEl.createEl("h3", { text: "Import" });
     new Setting(containerEl)
       .setName("Import from Strong App")
-      .setDesc("Import workout history exported from the Strong app (workouts.csv / exercises.csv).")
+      .setDesc("Import workout history exported from the Strong app (workouts.csv).")
       .addButton((btn) =>
         btn
           .setButtonText("Import from Strong App")
