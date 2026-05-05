@@ -1,10 +1,14 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import WorkoutTrackerPlugin from "../plugin";
-import { ExerciseTemplateSettingModal } from "./ExerciseTemplateSettingModal";
-import { WorkoutTemplateSettingModal } from "./WorkoutTemplateSettingModal";
+import { ExerciseSettingsPage } from "./ExerciseSettingsPage";
+import { RoutineSettingsPage } from "./RoutineSettingsPage";
+import { PlanSettingsPage } from "./PlanSettingsPage";
+
+type SettingsPage = "main" | "exercises" | "routines" | "plans";
 
 export class WorkoutTrackerSettingTab extends PluginSettingTab {
   plugin: WorkoutTrackerPlugin;
+  private currentPage: SettingsPage = "main";
 
   constructor(app: App, plugin: WorkoutTrackerPlugin) {
     super(app, plugin);
@@ -12,8 +16,23 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
   }
 
   display(): void {
-    const { containerEl } = this;
+    switch (this.currentPage) {
+      case "exercises":
+        this.renderExercises();
+        break;
+      case "routines":
+        this.renderRoutines();
+        break;
+      case "plans":
+        this.renderPlans();
+        break;
+      default:
+        this.renderMain();
+    }
+  }
 
+  private renderMain(): void {
+    const { containerEl } = this;
     containerEl.empty();
 
     containerEl.createEl("h2", { text: "Workout Journal Settings" });
@@ -170,39 +189,43 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
         })
       );
 
-    // Exercise Templates Section
-    containerEl.createEl("h3", { text: "Exercise Templates" });
+    containerEl.createEl("h3", { text: "Library" });
 
-    const exerciseTemplatesContainer = containerEl.createDiv();
-    this.renderExerciseTemplates(exerciseTemplatesContainer);
-
-    new Setting(containerEl).addButton((btn) =>
-      btn
-        .setButtonText("Add Exercise Template")
-        .setCta()
-        .onClick(() => {
-          new ExerciseTemplateSettingModal(this.app, this.plugin, () => {
-            this.renderExerciseTemplates(exerciseTemplatesContainer);
-          }).open();
+    const exerciseCount = this.plugin.settings.exerciseTemplates.length;
+    new Setting(containerEl)
+      .setName("Exercise Templates")
+      .setDesc(
+        `${exerciseCount} template${exerciseCount !== 1 ? "s" : ""} defined (legacy settings-based)`
+      )
+      .addButton((btn) =>
+        btn.setButtonText("Manage →").onClick(() => {
+          this.currentPage = "exercises";
+          this.display();
         })
-    );
+      );
 
-    // Workout Templates Section
-    containerEl.createEl("h3", { text: "Workout Templates" });
-
-    const workoutTemplatesContainer = containerEl.createDiv();
-    this.renderWorkoutTemplates(workoutTemplatesContainer);
-
-    new Setting(containerEl).addButton((btn) =>
-      btn
-        .setButtonText("Add Workout Template")
-        .setCta()
-        .onClick(() => {
-          new WorkoutTemplateSettingModal(this.app, this.plugin, () => {
-            this.renderWorkoutTemplates(workoutTemplatesContainer);
-          }).open();
+    const routineCount = this.plugin.settings.workoutTemplates.length;
+    new Setting(containerEl)
+      .setName("Routine Templates")
+      .setDesc(
+        `${routineCount} template${routineCount !== 1 ? "s" : ""} defined (legacy settings-based)`
+      )
+      .addButton((btn) =>
+        btn.setButtonText("Manage →").onClick(() => {
+          this.currentPage = "routines";
+          this.display();
         })
-    );
+      );
+
+    new Setting(containerEl)
+      .setName("Workout Plans")
+      .setDesc("Create and manage note-based workout plans built from routines")
+      .addButton((btn) =>
+        btn.setButtonText("Manage →").onClick(() => {
+          this.currentPage = "plans";
+          this.display();
+        })
+      );
 
     // Note Content Templates Section
     containerEl.createEl("h3", { text: "Note Content Templates" });
@@ -264,45 +287,27 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
     }
   }
 
-  renderExerciseTemplates(container: HTMLElement) {
-    container.empty();
-
-    this.plugin.settings.exerciseTemplates.forEach((template, index) => {
-      new Setting(container)
-        .setName(template.name)
-        .setDesc(`${template.type} | ${template.muscleGroups.join(", ")}`)
-        .addButton((btn) =>
-          btn
-            .setButtonText("Remove")
-            .setWarning()
-            .onClick(async () => {
-              this.plugin.settings.exerciseTemplates.splice(index, 1);
-              await this.plugin.saveSettings();
-              this.renderExerciseTemplates(container);
-            })
-        );
+  private renderExercises(): void {
+    const { containerEl } = this;
+    new ExerciseSettingsPage().render(containerEl, this.app, this.plugin, () => {
+      this.currentPage = "main";
+      this.display();
     });
   }
 
-  renderWorkoutTemplates(container: HTMLElement) {
-    container.empty();
+  private renderRoutines(): void {
+    const { containerEl } = this;
+    new RoutineSettingsPage().render(containerEl, this.app, this.plugin, () => {
+      this.currentPage = "main";
+      this.display();
+    });
+  }
 
-    this.plugin.settings.workoutTemplates.forEach((template, index) => {
-      new Setting(container)
-        .setName(template.name)
-        .setDesc(
-          `${template.exercises.join(", ")} | ${template.estimatedDuration} min`
-        )
-        .addButton((btn) =>
-          btn
-            .setButtonText("Remove")
-            .setWarning()
-            .onClick(async () => {
-              this.plugin.settings.workoutTemplates.splice(index, 1);
-              await this.plugin.saveSettings();
-              this.renderWorkoutTemplates(container);
-            })
-        );
+  private renderPlans(): void {
+    const { containerEl } = this;
+    new PlanSettingsPage().render(containerEl, this.app, this.plugin, () => {
+      this.currentPage = "main";
+      this.display();
     });
   }
 }
