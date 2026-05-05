@@ -1,3 +1,8 @@
 export { WorkoutTrackerSettingTab } from './WorkoutTrackerSettingTab';
 export { ExerciseTemplateSettingModal } from './ExerciseTemplateSettingModal';
 export { WorkoutTemplateSettingModal } from './WorkoutTemplateSettingModal';
+export { ExerciseSettingsPage } from './ExerciseSettingsPage';
+export { RoutineSettingsPage } from './RoutineSettingsPage';
+export { PlanSettingsPage } from './PlanSettingsPage';
+export { PlanBuilderModal } from './PlanBuilderModal';
+export { NoteContentTemplatesPage } from './NoteContentTemplatesPage';
