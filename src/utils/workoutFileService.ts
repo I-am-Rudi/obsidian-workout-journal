@@ -1,6 +1,7 @@
 import { App, TFile, Notice } from "obsidian";
 import { Workout, Exercise, ExerciseSet, WorkoutTrackerSettings } from "../types";
 import { parseYaml, stringifyYaml } from "obsidian";
+import { parseTemplateFrontmatter, appendTemplateBody } from "./noteTemplateUtils";
 
 export class WorkoutFileService {
   app: App;
@@ -201,7 +202,7 @@ export class WorkoutFileService {
       workoutTracker: true, // Tag to identify workout files
     };
 
-    const templateFm = this.parseTemplateFrontmatter(
+    const templateFm = parseTemplateFrontmatter(
       this.settings?.noteTemplates?.workout?.frontmatter
     );
     const frontmatter = { ...templateFm, ...baseFrontmatter };
@@ -241,24 +242,7 @@ export class WorkoutFileService {
       content += `## Notes\n\n${workout.notes}\n`;
     }
 
-    const templateBody = this.settings?.noteTemplates?.workout?.body?.trim();
-    if (templateBody) {
-      content += `\n${templateBody}\n`;
-    }
-
-    return content;
-  }
-
-  private parseTemplateFrontmatter(yaml: string | undefined): Record<string, unknown> {
-    if (!yaml?.trim()) return {};
-    try {
-      const parsed = parseYaml(yaml);
-      return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-        ? (parsed as Record<string, unknown>)
-        : {};
-    } catch {
-      return {};
-    }
+    return appendTemplateBody(content, this.settings?.noteTemplates?.workout?.body);
   }
 
   /**
