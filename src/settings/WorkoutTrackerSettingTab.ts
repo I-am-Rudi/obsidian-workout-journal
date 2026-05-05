@@ -3,8 +3,9 @@ import WorkoutTrackerPlugin from "../plugin";
 import { ExerciseSettingsPage } from "./ExerciseSettingsPage";
 import { RoutineSettingsPage } from "./RoutineSettingsPage";
 import { PlanSettingsPage } from "./PlanSettingsPage";
+import { NoteContentTemplatesPage } from "./NoteContentTemplatesPage";
 
-type SettingsPage = "main" | "exercises" | "routines" | "plans";
+type SettingsPage = "main" | "exercises" | "routines" | "plans" | "templates";
 
 export class WorkoutTrackerSettingTab extends PluginSettingTab {
   plugin: WorkoutTrackerPlugin;
@@ -25,6 +26,9 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
         break;
       case "plans":
         this.renderPlans();
+        break;
+      case "templates":
+        this.renderTemplates();
         break;
       default:
         this.renderMain();
@@ -227,64 +231,15 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
         })
       );
 
-    // Note Content Templates Section
-    containerEl.createEl("h3", { text: "Note Content Templates" });
-    containerEl.createEl("p", {
-      text: "Extra frontmatter properties (YAML) and body text appended to each generated note type. Plugin-managed properties (id, name, type, etc.) always take precedence over template frontmatter.",
-      cls: "setting-item-description",
-    });
-
-    const noteTypes: Array<{ key: "exercise" | "routine" | "plan" | "workout"; label: string }> = [
-      { key: "exercise", label: "Exercise Note" },
-      { key: "routine", label: "Routine Note" },
-      { key: "plan", label: "Plan Note" },
-      { key: "workout", label: "Workout Note" },
-    ];
-
-    for (const { key, label } of noteTypes) {
-      containerEl.createEl("h4", { text: label });
-
-      new Setting(containerEl)
-        .setName("Additional Frontmatter")
-        .setDesc("YAML properties merged into the note frontmatter (plugin properties take precedence).")
-        .addTextArea((ta) => {
-          ta.setPlaceholder("tag: my-tag\nstatus: active")
-            .setValue(this.plugin.settings.noteTemplates?.[key]?.frontmatter ?? "")
-            .onChange(async (value) => {
-              if (!this.plugin.settings.noteTemplates) {
-                this.plugin.settings.noteTemplates = {};
-              }
-              if (!this.plugin.settings.noteTemplates[key]) {
-                this.plugin.settings.noteTemplates[key] = {};
-              }
-              this.plugin.settings.noteTemplates[key]!.frontmatter = value;
-              await this.plugin.saveSettings();
-            });
-          ta.inputEl.rows = 4;
-          ta.inputEl.style.width = "100%";
-          ta.inputEl.style.fontFamily = "monospace";
-        });
-
-      new Setting(containerEl)
-        .setName("Additional Body")
-        .setDesc("Markdown text appended beneath the generated note content.")
-        .addTextArea((ta) => {
-          ta.setPlaceholder("## My Section\n\nCustom content here…")
-            .setValue(this.plugin.settings.noteTemplates?.[key]?.body ?? "")
-            .onChange(async (value) => {
-              if (!this.plugin.settings.noteTemplates) {
-                this.plugin.settings.noteTemplates = {};
-              }
-              if (!this.plugin.settings.noteTemplates[key]) {
-                this.plugin.settings.noteTemplates[key] = {};
-              }
-              this.plugin.settings.noteTemplates[key]!.body = value;
-              await this.plugin.saveSettings();
-            });
-          ta.inputEl.rows = 6;
-          ta.inputEl.style.width = "100%";
-        });
-    }
+    new Setting(containerEl)
+      .setName("Note Content Templates")
+      .setDesc("Extra frontmatter and body text appended to each generated note type")
+      .addButton((btn) =>
+        btn.setButtonText("Manage →").onClick(() => {
+          this.currentPage = "templates";
+          this.display();
+        })
+      );
   }
 
   private renderExercises(): void {
@@ -306,6 +261,14 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
   private renderPlans(): void {
     const { containerEl } = this;
     new PlanSettingsPage().render(containerEl, this.app, this.plugin, () => {
+      this.currentPage = "main";
+      this.display();
+    });
+  }
+
+  private renderTemplates(): void {
+    const { containerEl } = this;
+    new NoteContentTemplatesPage().render(containerEl, this.plugin, () => {
       this.currentPage = "main";
       this.display();
     });
