@@ -231,47 +231,29 @@ export function parseStrongWorkoutsCsv(csvContent: string): Workout[] {
 }
 
 /**
- * Parses the content of a Strong-app `exercises.csv` into an array of
- * ExerciseDefinitions.  The `Notes` column is mapped to `def.notes`, which
- * the DefinitionFileService already renders into the body of each exercise
- * note.
+ * Derives a minimal ExerciseDefinition for every unique exercise name found
+ * across the provided workouts.  Definitions are returned in first-encounter
+ * order.  Each definition is created with type "other" and no muscle groups;
+ * the user can edit the generated exercise notes afterwards.
  */
-export function parseStrongExercisesCsv(
-  csvContent: string
+export function deriveExerciseDefsFromWorkouts(
+  workouts: Workout[]
 ): ExerciseDefinition[] {
-  const lines = splitCsvLines(csvContent);
-  if (lines.length < 2) return [];
-
-  const headerCols = parseCsvLine(lines[0]);
-  const idx = (name: string) => headerCols.indexOf(name);
-
-  const iName = idx("Exercise Name");
-  const iType = idx("Exercise Type");
-  const iPrimary = idx("Primary Muscle Group");
-  const iSecondary = idx("Secondary Muscle Group");
-  const iNotes = idx("Notes");
-
+  const seen = new Set<string>();
   const defs: ExerciseDefinition[] = [];
 
-  for (const line of lines.slice(1)) {
-    if (!line.trim()) continue;
-    const cols = parseCsvLine(line);
-
-    const name = (iName >= 0 ? cols[iName] ?? "" : "").trim();
-    if (!name) continue;
-
-    const type = iType >= 0 ? mapExerciseType(cols[iType] ?? "") : "strength";
-    const primary = (iPrimary >= 0 ? cols[iPrimary] ?? "" : "").trim();
-    const secondary = (iSecondary >= 0 ? cols[iSecondary] ?? "" : "").trim();
-    const notes = (iNotes >= 0 ? cols[iNotes] ?? "" : "").trim();
-
-    defs.push({
-      id: createIdFromName(name),
-      name,
-      type,
-      muscleGroups: [primary, secondary].filter(Boolean),
-      notes: notes || undefined,
-    });
+  for (const workout of workouts) {
+    for (const exercise of workout.exercises) {
+      const name = exercise.name.trim();
+      if (!name || seen.has(name)) continue;
+      seen.add(name);
+      defs.push({
+        id: createIdFromName(name),
+        name,
+        type: "other",
+        muscleGroups: [],
+      });
+    }
   }
 
   return defs;

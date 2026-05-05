@@ -4,9 +4,9 @@ import {
   StrongImportService,
   StrongImportOptions,
   parseStrongWorkoutsCsv,
-  parseStrongExercisesCsv,
+  deriveExerciseDefsFromWorkouts,
 } from "../utils/strongImportService";
-import { Workout, ExerciseDefinition } from "../types";
+import { Workout } from "../types";
 
 function readFileAsText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -22,7 +22,6 @@ export class StrongImportModal extends Modal {
   private importService: StrongImportService;
 
   private parsedWorkouts: Workout[] = [];
-  private parsedExerciseDefs: ExerciseDefinition[] = [];
 
   private options: StrongImportOptions = {
     createWorkoutNotes: true,
@@ -33,10 +32,8 @@ export class StrongImportModal extends Modal {
 
   // UI elements that are updated dynamically
   private previewEl!: HTMLElement;
-  private exerciseImportToggleEl!: HTMLElement;
   private importBtnEl!: HTMLButtonElement;
   private workoutsFileLabel!: HTMLElement;
-  private exercisesFileLabel!: HTMLElement;
   private errorEl!: HTMLElement;
 
   constructor(app: App, plugin: WorkoutTrackerPlugin) {
@@ -96,46 +93,6 @@ export class StrongImportModal extends Modal {
       }
     });
 
-    // ── Exercises CSV ─────────────────────────────────────────────────────
-    contentEl.createEl("h3", { text: "Exercise Library (optional)" });
-
-    const exercisesInput = contentEl.createEl("input");
-    exercisesInput.type = "file";
-    exercisesInput.accept = ".csv";
-    exercisesInput.style.display = "none";
-
-    this.exercisesFileLabel = contentEl.createEl("p", {
-      text: "No file selected",
-      cls: "setting-item-description",
-    });
-
-    new Setting(contentEl)
-      .setName("exercises.csv")
-      .setDesc(
-        'Optionally import your exercise library from Strong: Profile → Settings → Export Data → "Exercises CSV". Notes from exercises.csv are written into the body of each exercise note.'
-      )
-      .addButton((btn) =>
-        btn
-          .setButtonText("Choose file…")
-          .onClick(() => exercisesInput.click())
-      );
-
-    exercisesInput.addEventListener("change", async () => {
-      const file = exercisesInput.files?.[0];
-      if (!file) return;
-      this.exercisesFileLabel.setText(`Selected: ${file.name}`);
-      this.clearError();
-      try {
-        const content = await readFileAsText(file);
-        this.parsedExerciseDefs = parseStrongExercisesCsv(content);
-        this.exerciseImportToggleEl.style.display = "";
-        this.options.importExerciseDefinitions = true;
-        this.updatePreview();
-      } catch (err) {
-        this.showError(`Failed to parse exercises.csv: ${(err as Error).message}`);
-      }
-    });
-
     // ── Options ───────────────────────────────────────────────────────────
     contentEl.createEl("h3", { text: "Options" });
 
@@ -175,12 +132,10 @@ export class StrongImportModal extends Modal {
         })
       );
 
-    this.exerciseImportToggleEl = contentEl.createDiv();
-    this.exerciseImportToggleEl.style.display = "none";
-    new Setting(this.exerciseImportToggleEl)
+    new Setting(contentEl)
       .setName("Import exercise definitions")
       .setDesc(
-        "Create or update exercise notes from the exercises.csv library. Notes from exercises.csv are placed in the body of each exercise note."
+        "Create an exercise note for each unique exercise name found in workouts.csv. Notes are created with type 'other'; you can edit each note afterwards."
       )
       .addToggle((toggle) =>
         toggle
@@ -219,15 +174,10 @@ export class StrongImportModal extends Modal {
     const summary = this.importService.summarize(this.parsedWorkouts);
     const dr = summary.dateRange;
     const dateRange = dr ? `${dr.earliest} → ${dr.latest}` : "—";
-    const exerciseLine =
-      this.parsedExerciseDefs.length > 0
-        ? ` | ${this.parsedExerciseDefs.length} exercise definitions loaded`
-        : "";
     this.previewEl.setText(
       `${this.parsedWorkouts.length} workouts found` +
         ` | ${summary.uniqueExerciseCount} unique exercises` +
-        ` | Date range: ${dateRange}` +
-        exerciseLine
+        ` | Date range: ${dateRange}`
     );
   }
 
@@ -247,9 +197,12 @@ export class StrongImportModal extends Modal {
     this.clearError();
 
     try {
+      const exerciseDefs = this.options.importExerciseDefinitions
+        ? deriveExerciseDefsFromWorkouts(this.parsedWorkouts)
+        : [];
       const result = await this.importService.importAll(
         this.parsedWorkouts,
-        this.parsedExerciseDefs,
+        exerciseDefs,
         this.options
       );
 
