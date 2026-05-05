@@ -8,6 +8,7 @@ import {
   WorkoutPlanRoutineEntry,
   WorkoutTrackerSettings,
 } from "../types";
+import { parseTemplateFrontmatter, appendTemplateBody } from "./noteTemplateUtils";
 
 export class DefinitionFileService {
   app: App;
@@ -293,7 +294,7 @@ export class DefinitionFileService {
   }
 
   private renderExerciseDefinition(def: ExerciseDefinition): string {
-    const frontmatter = {
+    const baseFrontmatter = {
       workoutTrackerType: "exercise",
       id: def.id,
       name: def.name,
@@ -307,13 +308,17 @@ export class DefinitionFileService {
       notes: def.notes,
       workoutTracker: true,
     };
-    return `---\n${stringifyYaml(frontmatter)}---\n\n# ${def.name}\n\n${
-      def.notes || ""
-    }\n`;
+    const templateFm = parseTemplateFrontmatter(
+      this.settings.noteTemplates?.exercise?.frontmatter
+    );
+    const frontmatter = { ...templateFm, ...baseFrontmatter };
+    const body =
+      `---\n${stringifyYaml(frontmatter)}---\n\n# ${def.name}\n\n${def.notes || ""}\n`;
+    return appendTemplateBody(body, this.settings.noteTemplates?.exercise?.body);
   }
 
   private renderRoutineDefinition(def: RoutineDefinition): string {
-    const frontmatter = {
+    const baseFrontmatter = {
       workoutTrackerType: "routine",
       id: def.id,
       name: def.name,
@@ -323,6 +328,10 @@ export class DefinitionFileService {
       planTags: def.planTags || [],
       workoutTracker: true,
     };
+    const templateFm = parseTemplateFrontmatter(
+      this.settings.noteTemplates?.routine?.frontmatter
+    );
+    const frontmatter = { ...templateFm, ...baseFrontmatter };
     let body = `---\n${stringifyYaml(frontmatter)}---\n\n# ${def.name}\n\n`;
     if (def.estimatedDuration) {
       body += `**Estimated Duration:** ${def.estimatedDuration} min\n\n`;
@@ -331,11 +340,11 @@ export class DefinitionFileService {
       body += `${def.notes}\n\n`;
     }
     body += this.renderRoutineTable(def.exercises);
-    return body;
+    return appendTemplateBody(body, this.settings.noteTemplates?.routine?.body);
   }
 
   private renderPlanDefinition(def: WorkoutPlanDefinition): string {
-    const frontmatter = {
+    const baseFrontmatter = {
       workoutTrackerType: "plan",
       id: def.id,
       name: def.name,
@@ -343,12 +352,16 @@ export class DefinitionFileService {
       notes: def.notes,
       workoutTracker: true,
     };
+    const templateFm = parseTemplateFrontmatter(
+      this.settings.noteTemplates?.plan?.frontmatter
+    );
+    const frontmatter = { ...templateFm, ...baseFrontmatter };
     let body = `---\n${stringifyYaml(frontmatter)}---\n\n# ${def.name}\n\n`;
     if (def.notes) {
       body += `${def.notes}\n\n`;
     }
     body += this.renderPlanTable(def.routines);
-    return body;
+    return appendTemplateBody(body, this.settings.noteTemplates?.plan?.body);
   }
 
   private renderRoutineTable(exercises: RoutineExerciseEntry[]): string {
