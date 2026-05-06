@@ -14,29 +14,30 @@ So far the plugin is mostly self-tested and was specifically designed to be used
 
 ## Features
 
-- **Exercise Logging**: Track sets, reps, weights, duration, and distances
-- **Workout Templates/Routines**: Create reusable routines that you
+- 💪 **Exercise Logging**: Track sets, reps, weights, duration, and distances
+- 🧩 **Workout Templates/Routines**: Create reusable routines that you
   repeatedly train and keep notes on your sessions 
-- **Workout Plans**: Create structured Workout Plans build from routines
-- **Exercise Library**: Build your own exercise library with muscle group
+- 🗓️ **Workout Plans**: Create structured Workout Plans build from routines
+- 📚 **Exercise Library**: Build your own exercise library with muscle group
   targeting
-- **Simple Note Creation**: Simple and intuitive UI in settings to manage templates, plans, and library
-- **Active Workout Sessions**: Start an interactive workout session in a
+- 📝 **Simple Note Creation**: Simple and intuitive UI in settings to manage templates, plans, and library
+- 🏋️ **Active Workout Sessions**: Start an interactive workout session in a
   dedicated window, quickly log exercise values, add new sets, exercises, and
   notes on the fly (closely mirror the experience of a dedicated fitness app)
-- **Date Management**: Automatic date formatting and file organization
-- **Customizable**: Configurable folders, add to the templates to improve
+- ⏱️ **Rest Timer**: Built-in rest timer to keep track of rest periods between sets
+- 📆 **Date Management**: Automatic date formatting and file organization
+- ⚙️ **Customizable**: Configurable folders, add to the templates to improve
   compatibility with your current vault
-- **Statistics & Analytics**: View comprehensive workout statistics and progress tracking
-- **Frontmatter Storage**: Workout data stored in YAML frontmatter for easy parsing and editing
-- **Edit Workouts**: Edit existing workouts with full frontmatter
+- 📊 **Statistics & Analytics**: View comprehensive workout statistics and progress tracking
+- 🗂️ **Frontmatter Storage**: Workout data stored in YAML frontmatter for easy parsing and editing
+- ✍️ **Edit Workouts**: Edit existing workouts with full frontmatter
   synchronization
-- **Mobile Support**: Designed to work well on mobile devices for logging
+- 📱 **Mobile Support**: Designed to work well on mobile devices for logging
   workouts in the Gym
-- **Workout History**: Each completed workout is saved as a separate markdown
+- 🕒 **Workout History**: Each completed workout is saved as a separate markdown
   file with structured data and human-readable content. All data is furthermore
   stored in a csv file for easy analysis and migration to other tools if desired.
-- **Import from Strong App**: Easily import workout data (workout.csv) from the
+- 🔄 **Import from Strong App**: Easily import workout data (workout.csv) from the
   Strong App to quickly migrate your existing workout history into Obsidian,
   with an option to create an exercise note for each unique exercise encountered during import
 
