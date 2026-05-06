@@ -80,6 +80,7 @@ I will submit the plugin to the official Obsidian Community Plugins directory. O
 - Create a new workout while you perform it with "Quick Log"
 
   <img src="./assets/quick-log.png" width="300">
+  
 -  Use the command palette: "Workout Journal: Create New Workout"
 - Use settings to create workout templates for your common routines (e.g.,
   "Full Body Workout", "Leg Day", etc.)
