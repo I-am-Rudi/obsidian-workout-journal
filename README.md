@@ -93,7 +93,9 @@ I will submit the plugin to the official Obsidian Community Plugins directory. O
 You can start an active workout session for any workout file created by the plugin. This opens a dedicated interface where you can quickly log exercise values, add new sets, exercises, and notes on the fly. The session is designed to closely mirror the experience of a dedicated fitness app, allowing you to focus on your workout while keeping your data organized.
 
 This is possible from the ribbon menu, or by opening an existing routine and
-run `Start Workout Session from Current Note` command.
+run `Start Workout Session from Current Note` command, or via the command
+palette.
+
 
 ### Manage Exercises, Routines, and Workout Plans
 - Use the settings interface to create and manage your exercise library, workout
@@ -228,72 +230,6 @@ npm run dev
 npm run build
 ```
 
-### Project Structure
-
-- `main.ts` - Main plugin file with core functionality
-- `manifest.json` - Plugin metadata
-- `package.json` - Node.js dependencies and scripts
-- `tsconfig.json` - TypeScript configuration
-- `esbuild.config.mjs` - Build configuration
-
-## Architecture
-
-### Modular Service Design
-
-The plugin uses a clean separation of concerns with two main services:
-
-#### **WorkoutFileService**
-
-- Handles all file operations (save, load, update workout files)
-- Manages frontmatter parsing and generation
-- Ensures data integrity with graceful error handling
-- Supports multiple workouts per day with unique timestamps
-
-#### **WorkoutStatisticsService**
-
-- Calculates comprehensive workout statistics
-- Tracks exercise frequency and personal records
-- Computes workout streaks and progress metrics
-- Provides time period analysis and progression tracking
-
-This separation makes the codebase more maintainable, testable, and allows for easy extension of either file handling or statistical features.
-
-## Features in Detail
-
-### Exercise Types Supported
-
-- **Strength Training**: Sets, reps, weight tracking
-- **Cardio**: Duration and distance tracking
-- **Flexibility**: Duration and notes
-- **Custom**: Flexible format for any exercise type
-
-### Data Organization
-
-- Workouts saved in configurable folder structure
-- Automatic file naming with date and workout name
-- Structured markdown format for easy reading and editing
-- Compatible with other Obsidian plugins (dataview, calendar, etc.)
-
-## Contributing
-
 ## License
 
 MIT License - see LICENSE file for details
-
-## Support
-
-If you find this plugin helpful, consider:
-
-- ⭐ Starring the repository
-- 🐛 Reporting bugs via GitHub issues
-- 💡 Suggesting features
-
-## Changelog
-
-### 1.0.0
-
-- Initial release
-- Basic workout and exercise tracking
-- Template system
-- Settings configuration
-- Ribbon and command palette integration
