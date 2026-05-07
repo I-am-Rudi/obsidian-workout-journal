@@ -253,6 +253,7 @@ export class WorkoutSessionView extends ItemView {
       const routineNoteInput = routineNoteBanner.createEl("textarea", {
         cls: "workout-session-routine-note-input",
       });
+      routineNoteInput.rows = 1;
       routineNoteInput.value = exercise.notes || "";
       routineNoteInput.placeholder = "Add routine note…";
 
