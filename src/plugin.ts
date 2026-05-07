@@ -366,6 +366,15 @@ export default class WorkoutTrackerPlugin extends Plugin {
         .filter((def) => def.filePath)
         .map((def) => [def.id, def.filePath])
     );
+    const exerciseLastPerformedMap = new Map(
+      exerciseDefs.map((def) => [
+        def.id,
+        {
+          reps: def.lastPerformedReps,
+          weight: def.lastPerformedWeight,
+        },
+      ])
+    );
     const session = await this.workoutSessionService.createSessionFromRoutine(
       resolved.resolved,
       {
@@ -373,6 +382,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
         planName: plan?.name,
         exerciseNotesMap,
         exerciseFilePathMap,
+        exerciseLastPerformedMap,
       }
     );
     this.activeSession = session;
