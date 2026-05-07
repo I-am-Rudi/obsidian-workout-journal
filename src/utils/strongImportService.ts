@@ -229,20 +229,64 @@ export function parseStrongWorkoutsCsv(csvContent: string): Workout[] {
 export function deriveExerciseDefsFromWorkouts(
   workouts: Workout[]
 ): ExerciseDefinition[] {
-  const seen = new Set<string>();
+  const defByName = new Map<string, ExerciseDefinition>();
+  const latestDateByName = new Map<string, string>();
   const defs: ExerciseDefinition[] = [];
+
+  const lastSetValues = (sets: { reps?: number; weight?: number }[]) => {
+    let lastPerformedReps: number | undefined;
+    let lastPerformedWeight: number | undefined;
+    for (const set of sets) {
+      if (typeof set.reps === "number" && !isNaN(set.reps)) {
+        lastPerformedReps = set.reps;
+      }
+      if (typeof set.weight === "number" && !isNaN(set.weight)) {
+        lastPerformedWeight = set.weight;
+      }
+    }
+    return { lastPerformedReps, lastPerformedWeight };
+  };
 
   for (const workout of workouts) {
     for (const exercise of workout.exercises) {
       const name = exercise.name.trim();
-      if (!name || seen.has(name)) continue;
-      seen.add(name);
-      defs.push({
-        id: createIdFromName(name),
-        name,
-        type: "other",
-        muscleGroups: [],
-      });
+      if (!name) continue;
+      const { lastPerformedReps, lastPerformedWeight } = lastSetValues(
+        exercise.sets
+      );
+
+      const existingDef = defByName.get(name);
+      if (!existingDef) {
+        const def: ExerciseDefinition = {
+          id: createIdFromName(name),
+          name,
+          type: "other",
+          muscleGroups: [],
+          lastPerformedReps,
+          lastPerformedWeight,
+        };
+        defs.push(def);
+        defByName.set(name, def);
+        latestDateByName.set(name, workout.date);
+        continue;
+      }
+
+      const latestDate = latestDateByName.get(name) ?? "";
+      if (workout.date > latestDate) {
+        existingDef.lastPerformedReps = lastPerformedReps;
+        existingDef.lastPerformedWeight = lastPerformedWeight;
+        latestDateByName.set(name, workout.date);
+        continue;
+      }
+
+      if (workout.date === latestDate) {
+        if (lastPerformedReps !== undefined) {
+          existingDef.lastPerformedReps = lastPerformedReps;
+        }
+        if (lastPerformedWeight !== undefined) {
+          existingDef.lastPerformedWeight = lastPerformedWeight;
+        }
+      }
     }
   }
 
