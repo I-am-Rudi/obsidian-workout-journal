@@ -89,9 +89,9 @@ export default class WorkoutTrackerPlugin extends Plugin {
     const openWorkoutTypeModal = () => {
       new WorkoutTypeSelectionModal(this.app, this).open();
     };
-    let ribbonIconEl: ReturnType<typeof this.addRibbonIcon> | null = null;
+    let ribbonIcon: ReturnType<typeof this.addRibbonIcon> | null = null;
     try {
-      ribbonIconEl = this.addRibbonIcon(
+      ribbonIcon = this.addRibbonIcon(
         "biceps-flexed",
         "Workout Journal",
         openWorkoutTypeModal
@@ -102,7 +102,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
         error
       );
       try {
-        ribbonIconEl = this.addRibbonIcon(
+        ribbonIcon = this.addRibbonIcon(
           "calendar",
           "Workout Journal",
           openWorkoutTypeModal
@@ -114,8 +114,8 @@ export default class WorkoutTrackerPlugin extends Plugin {
         );
       }
     }
-    if (ribbonIconEl) {
-      ribbonIconEl.addClass("workout-tracker-ribbon-class");
+    if (ribbonIcon) {
+      ribbonIcon.addClass("workout-tracker-ribbon-class");
     }
 
     this.app.workspace.onLayoutReady(async () => {
