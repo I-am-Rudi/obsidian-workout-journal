@@ -84,7 +84,7 @@ export class WorkoutFileService {
   /**
    * Get all workout files from the workout folder
    */
-  async getAllWorkoutFiles(): Promise<TFile[]> {
+  getAllWorkoutFiles(): TFile[] {
     const folder = this.app.vault.getAbstractFileByPath(this.workoutFolder);
 
     if (!folder) {
@@ -105,7 +105,7 @@ export class WorkoutFileService {
    * Load all workouts from the workout folder
    */
   async loadAllWorkouts(): Promise<Workout[]> {
-    const workoutFiles = await this.getAllWorkoutFiles();
+    const workoutFiles = this.getAllWorkoutFiles();
     const workouts: Workout[] = [];
 
     for (const file of workoutFiles) {
@@ -131,7 +131,7 @@ export class WorkoutFileService {
 
       const frontmatter = parseYaml(frontmatterMatch[1]);
       return frontmatter?.['wj-type'] === "workout";
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -182,24 +182,20 @@ export class WorkoutFileService {
    * Intended for bulk import flows where a single summary notice is preferred.
    */
   async saveWorkoutSilently(workout: Workout): Promise<TFile | null> {
-    try {
-      const fileName = this.generateFileName(workout);
-      const filePath = `${this.workoutFolder}/${fileName}`;
+    const fileName = this.generateFileName(workout);
+    const filePath = `${this.workoutFolder}/${fileName}`;
 
-      if (!this.app.vault.getAbstractFileByPath(this.workoutFolder)) {
-        await this.app.vault.createFolder(this.workoutFolder);
-      }
-
-      const content = this.generateWorkoutFileContent(workout);
-      const existingFile = this.app.vault.getAbstractFileByPath(filePath);
-      if (existingFile instanceof TFile) {
-        await this.app.vault.modify(existingFile, content);
-        return existingFile;
-      }
-      return await this.app.vault.create(filePath, content);
-    } catch (error) {
-      throw error;
+    if (!this.app.vault.getAbstractFileByPath(this.workoutFolder)) {
+      await this.app.vault.createFolder(this.workoutFolder);
     }
+
+    const content = this.generateWorkoutFileContent(workout);
+    const existingFile = this.app.vault.getAbstractFileByPath(filePath);
+    if (existingFile instanceof TFile) {
+      await this.app.vault.modify(existingFile, content);
+      return existingFile;
+    }
+    return await this.app.vault.create(filePath, content);
   }
 
   /**
@@ -337,7 +333,7 @@ export class WorkoutFileService {
         try {
           const frontmatter = parseYaml(frontmatterMatch[1]);
           originalId = frontmatter?.['wj-id'];
-        } catch (error) {
+        } catch {
           // Ignore frontmatter parsing errors, we'll generate a new ID
         }
       }

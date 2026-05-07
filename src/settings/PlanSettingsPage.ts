@@ -9,7 +9,7 @@ export class PlanSettingsPage {
 
     new Setting(containerEl)
       .addButton((btn) =>
-        btn.setButtonText("← General settings").onClick(() => {
+        btn.setButtonText("← Back to general settings").onClick(() => {
           onBack();
         })
       );
@@ -99,10 +99,10 @@ export class PlanSettingsPage {
                 new Notice("Plan note file not found.");
                 return;
               }
-              await app.vault.delete(file);
+              await app.fileManager.trashFile(file);
               new Notice(`Deleted plan: ${plan.name}`);
               await onRefresh();
-            })();
+             })();
           })
       );
     });

@@ -156,7 +156,10 @@ export function parseStrongWorkoutsCsv(csvContent: string): Workout[] {
       });
     }
 
-    const workout = workoutMap.get(key)!;
+    const workout = workoutMap.get(key);
+    if (!workout) {
+      continue;
+    }
     const exerciseName =
       iExerciseName >= 0 ? (cols[iExerciseName] ?? "").trim() : "";
     if (!exerciseName) continue;

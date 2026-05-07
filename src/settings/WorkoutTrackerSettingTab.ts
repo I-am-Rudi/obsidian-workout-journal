@@ -41,7 +41,7 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     containerEl.createEl("p", {
-      text: "Configure folders, tracking behavior, and library tools for Workout Journal.",
+      text: "Configure folders, tracking behavior, and library tools for Workout journal.",
       cls: "setting-item-description",
     });
 
@@ -65,7 +65,7 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
       .setDesc("Folder containing exercise definition notes")
       .addText((text) =>
         text
-          .setPlaceholder("Workout library/Exercises")
+          .setPlaceholder("Workout library/exercises")
           .setValue(this.plugin.settings.exerciseLibraryFolder)
           .onChange(async (value) => {
             this.plugin.settings.exerciseLibraryFolder = value.trim()
@@ -80,7 +80,7 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
       .setDesc("Folder containing routine definition notes")
       .addText((text) =>
         text
-          .setPlaceholder("Workout library/Routines")
+          .setPlaceholder("Workout library/routines")
           .setValue(this.plugin.settings.routinesFolder)
           .onChange(async (value) => {
             this.plugin.settings.routinesFolder = value.trim()
@@ -95,7 +95,7 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
       .setDesc("Folder containing workout plan definition notes")
       .addText((text) =>
         text
-          .setPlaceholder("Workout library/Plans")
+          .setPlaceholder("Workout library/plans")
           .setValue(this.plugin.settings.workoutPlansFolder)
           .onChange(async (value) => {
             this.plugin.settings.workoutPlansFolder = value.trim()
@@ -227,11 +227,11 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
 
     new Setting(containerEl).setName("Import").setHeading();
     new Setting(containerEl)
-      .setName("Import from Strong app")
-      .setDesc("Import workout history exported from the Strong app (workouts.csv).")
+      .setName("Import from strong app")
+      .setDesc("Import workout history exported from the strong app (workouts.csv).")
       .addButton((btn) =>
         btn
-          .setButtonText("Import from Strong app")
+          .setButtonText("Import from strong app")
           .onClick(() => new StrongImportModal(this.app, this.plugin).open())
       );
 

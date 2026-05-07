@@ -8,14 +8,14 @@ export class ExerciseSettingsPage {
 
     new Setting(containerEl)
       .addButton((btn) =>
-        btn.setButtonText("← General settings").onClick(() => {
+        btn.setButtonText("← Back to general settings").onClick(() => {
           onBack();
         })
       );
 
     containerEl.createEl("h2", { text: "Exercise templates" });
     containerEl.createEl("p", {
-      text: "Exercise templates are legacy definitions stored in plugin settings. Use 'Migrate Templates to Notes' on the main settings page to convert them to full exercise notes.",
+      text: "Exercise templates are legacy definitions stored in plugin settings. Use 'Migrate templates to notes' on the main settings page to convert them to full exercise notes.",
       cls: "setting-item-description",
     });
 

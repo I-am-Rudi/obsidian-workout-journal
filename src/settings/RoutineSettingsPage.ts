@@ -8,14 +8,14 @@ export class RoutineSettingsPage {
 
     new Setting(containerEl)
       .addButton((btn) =>
-        btn.setButtonText("← General settings").onClick(() => {
+        btn.setButtonText("← Back to general settings").onClick(() => {
           onBack();
         })
       );
 
     containerEl.createEl("h2", { text: "Routine templates" });
     containerEl.createEl("p", {
-      text: "Routine templates are legacy definitions stored in plugin settings. Use 'Migrate Templates to Notes' on the main settings page to convert them into full routine notes that support detailed per-exercise set configuration.",
+      text: "Routine templates are legacy definitions stored in plugin settings. Use 'Migrate templates to notes' on the main settings page to convert them into full routine notes that support detailed per-exercise set configuration.",
       cls: "setting-item-description",
     });
 
