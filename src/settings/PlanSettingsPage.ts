@@ -99,9 +99,9 @@ export class PlanSettingsPage {
                 new Notice("Plan note file not found.");
                 return;
               }
-               await app.fileManager.trashFile(file);
-               new Notice(`Deleted plan: ${plan.name}`);
-               await onRefresh();
+              await app.fileManager.trashFile(file);
+              new Notice(`Deleted plan: ${plan.name}`);
+              await onRefresh();
              })();
           })
       );

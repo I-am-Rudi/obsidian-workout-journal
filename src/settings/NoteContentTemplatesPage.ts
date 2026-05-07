@@ -32,7 +32,7 @@ export class NoteContentTemplatesPage {
         .setName("Additional frontmatter")
         .setDesc("YAML properties merged into the note frontmatter (plugin properties take precedence).")
         .addTextArea((ta) => {
-          ta.setPlaceholder("Tag: my-tag\nStatus: active")
+          ta.setPlaceholder("Example: tag: my-tag\nstatus: active")
             .setValue(plugin.settings.noteTemplates?.[key]?.frontmatter ?? "")
             .onChange(async (value) => {
               if (!plugin.settings.noteTemplates) {

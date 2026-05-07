@@ -71,7 +71,7 @@ export class ExerciseTemplateSettingModal extends Modal {
 		new Setting(contentEl)
 			.setName('Muscle groups (comma-separated)')
 			.addText(text => text
-				.setPlaceholder('Chest, triceps, shoulders')
+				.setPlaceholder('Example: chest, triceps, shoulders')
 				.onChange((value) => {
 					this.template.muscleGroups = value.split(',').map(s => s.trim()).filter(s => s);
 				}));
