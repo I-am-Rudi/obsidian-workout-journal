@@ -230,19 +230,68 @@ export function deriveExerciseDefsFromWorkouts(
   workouts: Workout[]
 ): ExerciseDefinition[] {
   const seen = new Set<string>();
+  const indexByName = new Map<string, number>();
+  const latestDateByName = new Map<string, string>();
   const defs: ExerciseDefinition[] = [];
+
+  const latestSetValues = (sets: { reps?: number; weight?: number }[]) => {
+    let lastPerformedReps: number | undefined;
+    let lastPerformedWeight: number | undefined;
+    for (const set of sets) {
+      if (typeof set.reps === "number" && !isNaN(set.reps)) {
+        lastPerformedReps = set.reps;
+      }
+      if (typeof set.weight === "number" && !isNaN(set.weight)) {
+        lastPerformedWeight = set.weight;
+      }
+    }
+    return { lastPerformedReps, lastPerformedWeight };
+  };
 
   for (const workout of workouts) {
     for (const exercise of workout.exercises) {
       const name = exercise.name.trim();
       if (!name || seen.has(name)) continue;
       seen.add(name);
+      const { lastPerformedReps, lastPerformedWeight } = latestSetValues(
+        exercise.sets
+      );
       defs.push({
         id: createIdFromName(name),
         name,
         type: "other",
         muscleGroups: [],
+        lastPerformedReps,
+        lastPerformedWeight,
       });
+      indexByName.set(name, defs.length - 1);
+      latestDateByName.set(name, workout.date);
+    }
+  }
+
+  for (const workout of workouts) {
+    for (const exercise of workout.exercises) {
+      const name = exercise.name.trim();
+      if (!name) continue;
+      const index = indexByName.get(name);
+      if (index === undefined) continue;
+
+      const latestDate = latestDateByName.get(name) ?? "";
+      if (workout.date < latestDate) continue;
+
+      const def = defs[index];
+      const { lastPerformedReps, lastPerformedWeight } = latestSetValues(
+        exercise.sets
+      );
+      if (workout.date > latestDate) {
+        latestDateByName.set(name, workout.date);
+      }
+      if (lastPerformedReps !== undefined) {
+        def.lastPerformedReps = lastPerformedReps;
+      }
+      if (lastPerformedWeight !== undefined) {
+        def.lastPerformedWeight = lastPerformedWeight;
+      }
     }
   }
 
