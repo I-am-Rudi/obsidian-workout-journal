@@ -466,7 +466,9 @@ export class DefinitionFileService {
   private requireConfiguredFolder(path: string, label: string): string {
     const normalized = this.normalizeUserPath(path);
     if (!normalized) {
-      throw new Error(`Workout Tracker: ${label} is not configured.`);
+      throw new Error(
+        `Workout Tracker: ${label} is not configured. Please configure it in plugin settings.`
+      );
     }
     return normalized;
   }

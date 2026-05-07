@@ -40,6 +40,7 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
+    new Setting(containerEl).setName("Workout journal").setHeading();
     containerEl.createEl("p", {
       text: "Configure folders, tracking behavior, and library tools for Workout Journal.",
       cls: "setting-item-description",
