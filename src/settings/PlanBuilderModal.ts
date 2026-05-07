@@ -80,33 +80,35 @@ export class PlanBuilderModal extends Modal {
       btn
         .setButtonText("Save plan")
         .setCta()
-        .onClick(async () => {
-          if (!this.planName) {
-            new Notice("Please enter a plan name.");
-            return;
-          }
-          if (this.selectedEntries.length === 0) {
-            new Notice("Please add at least one routine.");
-            return;
-          }
+        .onClick(() => {
+          void (async () => {
+            if (!this.planName) {
+              new Notice("Please enter a plan name.");
+              return;
+            }
+            if (this.selectedEntries.length === 0) {
+              new Notice("Please add at least one routine.");
+              return;
+            }
 
-          const plan: WorkoutPlanDefinition = {
-            id: createIdFromName(this.planName),
-            name: this.planName,
-            routines: this.selectedEntries.map((entry) => ({
-              ...entry,
-              day: entry.day || undefined,
-              notes: entry.notes || undefined,
-            })),
-          };
+            const plan: WorkoutPlanDefinition = {
+              id: createIdFromName(this.planName),
+              name: this.planName,
+              routines: this.selectedEntries.map((entry) => ({
+                ...entry,
+                day: entry.day || undefined,
+                notes: entry.notes || undefined,
+              })),
+            };
 
-          const file = await this.plugin.definitionService.createWorkoutPlanDefinition(plan);
-          this.onSave();
-          this.close();
+            const file = await this.plugin.definitionService.createWorkoutPlanDefinition(plan);
+            this.onSave();
+            this.close();
 
-          if (file) {
-            await this.app.workspace.openLinkText(file.path, "", false);
-          }
+            if (file) {
+              await this.app.workspace.openLinkText(file.path, "", false);
+            }
+          })();
         })
     );
   }

@@ -26,12 +26,12 @@ export class WorkoutSessionView extends ItemView {
     return "Workout session";
   }
 
-  async onOpen() {
+  onOpen() {
     this.session = this.plugin.activeSession;
     this.render();
   }
 
-  async onClose() {
+  onClose() {
     this.timerIntervals.forEach((intervalId) => clearInterval(intervalId));
     this.timerIntervals.clear();
     this.contentEl.empty();
@@ -78,6 +78,7 @@ export class WorkoutSessionView extends ItemView {
       contentEl.createEl("p", { text: "No active workout session." });
       return;
     }
+    const session = this.session;
 
     const titleEl = contentEl.createDiv({
       text: this.session.name,
@@ -92,7 +93,7 @@ export class WorkoutSessionView extends ItemView {
       }${this.session.planName ? ` • Plan: ${this.session.planName}` : ""}`
     );
 
-    this.session.exercises.forEach((exercise, exerciseIndex) => {
+    session.exercises.forEach((exercise, exerciseIndex) => {
       const card = contentEl.createDiv({ cls: "workout-session-card" });
 
       // Exercise header with name and management controls
@@ -105,7 +106,7 @@ export class WorkoutSessionView extends ItemView {
           title: "View / edit exercise note",
         });
         nameBtn.onclick = () => {
-          new ExerciseNoteModal(this.app, exercise.exerciseFilePath!, exercise.exerciseName).open();
+          new ExerciseNoteModal(this.app, exercise.exerciseFilePath, exercise.exerciseName).open();
         };
       } else {
         const exerciseNameEl = cardHeader.createDiv({
@@ -137,12 +138,12 @@ export class WorkoutSessionView extends ItemView {
       moveUpBtn.disabled = exerciseIndex === 0;
       moveUpBtn.onclick = () => {
         if (exerciseIndex === 0) return;
-        const exercises = this.session!.exercises;
+        const exercises = session.exercises;
         [exercises[exerciseIndex - 1], exercises[exerciseIndex]] = [
           exercises[exerciseIndex],
           exercises[exerciseIndex - 1],
         ];
-        this.session!.hasRoutineChanges = true;
+        session.hasRoutineChanges = true;
         this.render();
       };
 
@@ -152,15 +153,15 @@ export class WorkoutSessionView extends ItemView {
         cls: "workout-session-exercise-move",
         title: "Move exercise down",
       });
-      moveDownBtn.disabled = exerciseIndex === this.session.exercises.length - 1;
+      moveDownBtn.disabled = exerciseIndex === session.exercises.length - 1;
       moveDownBtn.onclick = () => {
-        const exercises = this.session!.exercises;
+        const exercises = session.exercises;
         if (exerciseIndex >= exercises.length - 1) return;
         [exercises[exerciseIndex], exercises[exerciseIndex + 1]] = [
           exercises[exerciseIndex + 1],
           exercises[exerciseIndex],
         ];
-        this.session!.hasRoutineChanges = true;
+        session.hasRoutineChanges = true;
         this.render();
       };
 
@@ -171,14 +172,15 @@ export class WorkoutSessionView extends ItemView {
         title: "Remove exercise",
       });
       removeExerciseBtn.onclick = () => {
-        this.session!.exercises.splice(exerciseIndex, 1);
-        this.session!.hasRoutineChanges = true;
+        session.exercises.splice(exerciseIndex, 1);
+        session.hasRoutineChanges = true;
         this.render();
       };
 
       // Inline timer editor (shown when timer button is clicked)
       const timerEditor = card.createDiv({ cls: "workout-session-timer-editor" });
-      timerEditor.style.display = "none";
+      timerEditor.hide();
+      let isTimerEditorOpen = false;
       timerEditor.createEl("label", { text: "Rest timer (s):", cls: "workout-session-timer-label" });
       const timerInput = timerEditor.createEl("input", {
         type: "number",
@@ -204,33 +206,42 @@ export class WorkoutSessionView extends ItemView {
           exercise.restTimerSeconds = val;
           timerBtn.textContent = `⏱ ${val}s`;
         }
-        timerEditor.style.display = "none";
+        timerEditor.hide();
+        isTimerEditorOpen = false;
       };
       timerSaveBtn.onclick = saveTimer;
-      timerCancelBtn.onclick = () => { timerEditor.style.display = "none"; };
+      timerCancelBtn.onclick = () => {
+        timerEditor.hide();
+        isTimerEditorOpen = false;
+      };
       timerInput.addEventListener("keydown", (ev: KeyboardEvent) => {
         if (ev.key === "Enter") saveTimer();
-        if (ev.key === "Escape") timerEditor.style.display = "none";
+        if (ev.key === "Escape") {
+          timerEditor.hide();
+          isTimerEditorOpen = false;
+        }
       });
 
       timerBtn.onclick = () => {
-        if (timerEditor.style.display === "none") {
+        if (!isTimerEditorOpen) {
           timerInput.value = String(
             exercise.restTimerSeconds !== undefined
               ? exercise.restTimerSeconds
               : this.plugin.settings.defaultRestTimerSeconds
           );
-          timerEditor.style.display = "flex";
+          timerEditor.show();
+          isTimerEditorOpen = true;
           timerInput.focus();
           timerInput.select();
         } else {
-          timerEditor.style.display = "none";
+          timerEditor.hide();
+          isTimerEditorOpen = false;
         }
       };
 
       // Timer countdown display (shown while a rest timer is running)
       const timerDisplay = card.createDiv({ cls: "workout-session-timer-display" });
-      timerDisplay.style.display = "none";
+      timerDisplay.hide();
       timerDisplay.title = "Click to stop timer";
       timerDisplay.addEventListener("click", () => {
         this.stopRestTimer(exerciseIndex, timerDisplay);
@@ -273,7 +284,7 @@ export class WorkoutSessionView extends ItemView {
           });
           setTypeBtn.onclick = () => {
             set.setType = this.nextSetType(set.setType);
-            this.session!.hasRoutineChanges = true;
+            session.hasRoutineChanges = true;
             this.render();
           };
           row.createEl("td", {
@@ -287,7 +298,7 @@ export class WorkoutSessionView extends ItemView {
           this.renderSetEditor(targetCell, set.targetWeight, set.targetReps, (weight, reps) => {
             set.targetWeight = weight;
             set.targetReps = reps;
-            this.session!.hasRoutineChanges = true;
+            session.hasRoutineChanges = true;
           });
 
           const actualCell = row.createEl("td");
@@ -320,14 +331,14 @@ export class WorkoutSessionView extends ItemView {
           removeBtn.onclick = () => {
             exercise.sets.splice(index, 1);
             exercise.sets.forEach((s, i) => { s.setIndex = i + 1; });
-            this.session!.hasRoutineChanges = true;
+            session.hasRoutineChanges = true;
             this.render();
           };
         });
       }
 
       new Setting(card).addButton((btn) =>
-        btn.setButtonText("Add Set").onClick(() => {
+        btn.setButtonText("Add set").onClick(() => {
           exercise.sets.push({
             setIndex: exercise.sets.length + 1,
             completed: false,
@@ -350,14 +361,14 @@ export class WorkoutSessionView extends ItemView {
                   exercise.sets[exercise.sets.length - 1].targetWeight
                 : undefined,
           });
-          this.session!.hasRoutineChanges = true;
+          session.hasRoutineChanges = true;
           this.render();
         })
       );
 
       // Routine-specific exercise notes (editable)
       new Setting(card)
-        .setName("Routine Notes")
+        .setName("Routine notes")
         .setClass("workout-session-routine-notes-setting")
         .addTextArea((text) =>
           text
@@ -365,7 +376,7 @@ export class WorkoutSessionView extends ItemView {
             .setValue(exercise.notes || "")
             .onChange((value) => {
               exercise.notes = value || undefined;
-              this.session!.hasRoutineChanges = true;
+              session.hasRoutineChanges = true;
             })
         );
     });
@@ -374,40 +385,42 @@ export class WorkoutSessionView extends ItemView {
     new Setting(contentEl)
       .setName("Exercises")
       .addButton((btn) =>
-        btn.setButtonText("Add Exercise").onClick(async () => {
-          const exercises = await this.plugin.definitionService.loadExerciseDefinitions();
-          new AddSessionExerciseModal(this.app, this.plugin, exercises, (newExercise) => {
-            this.session!.exercises.push(newExercise);
-            this.session!.hasRoutineChanges = true;
-            this.render();
-          }).open();
+        btn.setButtonText("Add exercise").onClick(() => {
+          void (async () => {
+            const exercises = await this.plugin.definitionService.loadExerciseDefinitions();
+            new AddSessionExerciseModal(this.app, this.plugin, exercises, (newExercise) => {
+              session.exercises.push(newExercise);
+              session.hasRoutineChanges = true;
+              this.render();
+            }).open();
+          })();
         })
       );
 
     new Setting(contentEl)
-      .setName("Workout Notes")
+      .setName("Workout notes")
       .addTextArea((text) =>
-        text.setValue(this.session.notes || "").onChange((value) => {
-          this.session!.notes = value;
+        text.setValue(session.notes || "").onChange((value) => {
+          session.notes = value;
         })
       );
 
     new Setting(contentEl)
       .addButton((btn) =>
         btn
-          .setButtonText("Finish Workout")
+          .setButtonText("Finish workout")
           .setCta()
-          .onClick(async () => {
-            await this.plugin.finishActiveSessionFromView();
+          .onClick(() => {
+            this.plugin.finishActiveSessionFromView();
           })
       )
       .addButton((btn) =>
-        btn.setButtonText("Cancel Session").setWarning().onClick(() => {
+        btn.setButtonText("Cancel session").setWarning().onClick(() => {
           new ConfirmModal(
             this.plugin.app,
             "Are you sure you want to cancel this session? All progress will be lost.",
-            async () => {
-              await this.plugin.cancelActiveSession();
+            () => {
+              void this.plugin.cancelActiveSession();
             }
           ).open();
         })
@@ -441,7 +454,9 @@ export class WorkoutSessionView extends ItemView {
     });
     setTypeBtnMobile.onclick = () => {
       set.setType = this.nextSetType(set.setType);
-      this.session!.hasRoutineChanges = true;
+      if (this.session) {
+        this.session.hasRoutineChanges = true;
+      }
       onRerender();
     };
 
@@ -476,7 +491,9 @@ export class WorkoutSessionView extends ItemView {
     removeBtn.onclick = () => {
       exercise.sets.splice(index, 1);
       exercise.sets.forEach((s, i) => { s.setIndex = i + 1; });
-      this.session!.hasRoutineChanges = true;
+      if (this.session) {
+        this.session.hasRoutineChanges = true;
+      }
       onRerender();
     };
   }
@@ -528,14 +545,14 @@ export class WorkoutSessionView extends ItemView {
         clearInterval(this.timerIntervals.get(exerciseIndex));
         this.timerIntervals.delete(exerciseIndex);
         this.timerRemaining.delete(exerciseIndex);
-        display.style.display = "none";
+        display.hide();
         display.textContent = "";
         new Notice("🏋️ Rest complete! Time for the next set.");
         return;
       }
       const minutes = Math.floor(remaining / 60);
       const seconds = remaining % 60;
-      display.style.display = "flex";
+      display.show();
       display.textContent = `⏱ ${minutes}:${seconds.toString().padStart(2, "0")} — tap to stop`;
       this.timerRemaining.set(exerciseIndex, remaining - 1);
     };
@@ -552,7 +569,7 @@ export class WorkoutSessionView extends ItemView {
       this.timerIntervals.delete(exerciseIndex);
     }
     this.timerRemaining.delete(exerciseIndex);
-    display.style.display = "none";
+    display.hide();
     display.textContent = "";
   }
 

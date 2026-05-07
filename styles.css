@@ -256,6 +256,23 @@
     opacity: 0.8;
 }
 
+.workout-edit-button-container {
+    margin-top: 20px;
+}
+
+.workout-edit-exercise-btn {
+    margin-right: 8px;
+}
+
+.note-template-frontmatter-ta,
+.note-template-body-ta {
+    width: 100%;
+}
+
+.note-template-frontmatter-ta {
+    font-family: var(--font-monospace);
+}
+
 /* Strong-like workout session tracker */
 .workout-session-view {
     padding: 12px;

@@ -93,7 +93,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
     try {
       ribbonIcon = this.addRibbonIcon(
         "biceps-flexed",
-        "Workout Journal",
+        "Workout journal",
         openWorkoutTypeModal
       );
     } catch (error) {
@@ -104,7 +104,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
       try {
         ribbonIcon = this.addRibbonIcon(
           "calendar",
-          "Workout Journal",
+          "Workout journal",
           openWorkoutTypeModal
         );
       } catch (fallbackError) {
@@ -187,8 +187,8 @@ export default class WorkoutTrackerPlugin extends Plugin {
       name: "Start workout from routine",
       callback: async () => {
         const routines = await this.definitionService.loadRoutineDefinitions();
-        new RoutineSelectionModal(this.app, routines, async (routine) => {
-          await this.startSessionFromRoutine(routine, true);
+        new RoutineSelectionModal(this.app, routines, (routine) => {
+          void this.startSessionFromRoutine(routine, true);
         }).open();
       },
     });
@@ -201,8 +201,8 @@ export default class WorkoutTrackerPlugin extends Plugin {
           this.definitionService.loadPlanDefinitions(),
           this.definitionService.loadRoutineDefinitions(),
         ]);
-        new PlanSelectionModal(this.app, plans, routines, async (plan, routine) => {
-          await this.startSessionFromRoutine(routine, true, plan);
+        new PlanSelectionModal(this.app, plans, routines, (plan, routine) => {
+          void this.startSessionFromRoutine(routine, true, plan);
         }).open();
       },
     });
@@ -358,12 +358,12 @@ export default class WorkoutTrackerPlugin extends Plugin {
     const exerciseNotesMap = new Map(
       exerciseDefs
         .filter((def) => def.notes)
-        .map((def) => [def.id, def.notes!])
+        .map((def) => [def.id, def.notes])
     );
     const exerciseFilePathMap = new Map(
       exerciseDefs
         .filter((def) => def.filePath)
-        .map((def) => [def.id, def.filePath!])
+        .map((def) => [def.id, def.filePath])
     );
     const session = await this.workoutSessionService.createSessionFromRoutine(
       resolved.resolved,
@@ -378,14 +378,14 @@ export default class WorkoutTrackerPlugin extends Plugin {
     await this.openSessionView(preferPopout);
   }
 
-  async finishActiveSessionFromView(): Promise<void> {
+  finishActiveSessionFromView(): void {
     const hasUnfinishedSets =
       this.activeSession?.exercises.some((exercise) =>
         exercise.sets.some((set) => !set.completed)
       ) || false;
 
-    new SessionFinishModal(this.app, hasUnfinishedSets, async (options) => {
-      await this.finishActiveSession(options);
+    new SessionFinishModal(this.app, hasUnfinishedSets, (options) => {
+      void this.finishActiveSession(options);
     }).open();
   }
 
@@ -469,8 +469,8 @@ export default class WorkoutTrackerPlugin extends Plugin {
     const plan = await this.definitionService.loadPlanFromFile(file);
     if (plan) {
       const routines = await this.definitionService.loadRoutineDefinitions();
-      new PlanSelectionModal(this.app, [plan], routines, async (selectedPlan, selectedRoutine) => {
-        await this.startSessionFromRoutine(selectedRoutine, true, selectedPlan);
+      new PlanSelectionModal(this.app, [plan], routines, (selectedPlan, selectedRoutine) => {
+        void this.startSessionFromRoutine(selectedRoutine, true, selectedPlan);
       }).open();
       return;
     }
@@ -672,18 +672,20 @@ export default class WorkoutTrackerPlugin extends Plugin {
       clearTimeout(existingTimeout);
     }
 
-    const timeout = setTimeout(async () => {
-      try {
-        const isWorkout = await this.fileService.isWorkoutFile(file);
-        if (!isWorkout) {
-          return;
+    const timeout = setTimeout(() => {
+      void (async () => {
+        try {
+          const isWorkout = await this.fileService.isWorkoutFile(file);
+          if (!isWorkout) {
+            return;
+          }
+          await this.fileService.syncFrontmatterWithContent(file);
+        } catch (error) {
+          console.error(`Error syncing frontmatter for ${file.path}:`, error);
+        } finally {
+          this.syncTimeouts.delete(file.path);
         }
-        await this.fileService.syncFrontmatterWithContent(file);
-      } catch (error) {
-        console.error(`Error syncing frontmatter for ${file.path}:`, error);
-      } finally {
-        this.syncTimeouts.delete(file.path);
-      }
+      })();
     }, this.settings.autoSyncDelayMs);
 
     this.syncTimeouts.set(file.path, timeout);

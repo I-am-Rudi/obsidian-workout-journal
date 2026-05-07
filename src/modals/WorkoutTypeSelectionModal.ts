@@ -42,12 +42,14 @@ export class WorkoutTypeSelectionModal extends Modal {
       .setName("Start from routine")
       .setDesc("Load previous targets and track a routine session")
       .addButton((btn) =>
-        btn.setButtonText("Choose routine").onClick(async () => {
+        btn.setButtonText("Choose routine").onClick(() => {
           this.close();
-          const routines = await this.plugin.definitionService.loadRoutineDefinitions();
-          new RoutineSelectionModal(this.app, routines, (routine) => {
-            void this.plugin.startSessionFromRoutine(routine, true);
-          }).open();
+          void (async () => {
+            const routines = await this.plugin.definitionService.loadRoutineDefinitions();
+            new RoutineSelectionModal(this.app, routines, (routine) => {
+              void this.plugin.startSessionFromRoutine(routine, true);
+            }).open();
+          })();
         })
       );
 
@@ -55,15 +57,17 @@ export class WorkoutTypeSelectionModal extends Modal {
       .setName("Start from plan")
       .setDesc("Choose a routine from a workout plan")
       .addButton((btn) =>
-        btn.setButtonText("Choose plan").onClick(async () => {
+        btn.setButtonText("Choose plan").onClick(() => {
           this.close();
-          const [plans, routines] = await Promise.all([
-            this.plugin.definitionService.loadPlanDefinitions(),
-            this.plugin.definitionService.loadRoutineDefinitions(),
-          ]);
-          new PlanSelectionModal(this.app, plans, routines, (plan, routine) => {
-            void this.plugin.startSessionFromRoutine(routine, true, plan);
-          }).open();
+          void (async () => {
+            const [plans, routines] = await Promise.all([
+              this.plugin.definitionService.loadPlanDefinitions(),
+              this.plugin.definitionService.loadRoutineDefinitions(),
+            ]);
+            new PlanSelectionModal(this.app, plans, routines, (plan, routine) => {
+              void this.plugin.startSessionFromRoutine(routine, true, plan);
+            }).open();
+          })();
         })
       );
   }

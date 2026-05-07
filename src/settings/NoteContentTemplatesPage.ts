@@ -41,7 +41,11 @@ export class NoteContentTemplatesPage {
               if (!plugin.settings.noteTemplates[key]) {
                 plugin.settings.noteTemplates[key] = {};
               }
-              plugin.settings.noteTemplates[key]!.frontmatter = value;
+              const template = plugin.settings.noteTemplates[key];
+              if (!template) {
+                return;
+              }
+              template.frontmatter = value;
               await plugin.saveSettings();
             });
           ta.inputEl.rows = 4;
@@ -61,7 +65,11 @@ export class NoteContentTemplatesPage {
               if (!plugin.settings.noteTemplates[key]) {
                 plugin.settings.noteTemplates[key] = {};
               }
-              plugin.settings.noteTemplates[key]!.body = value;
+              const template = plugin.settings.noteTemplates[key];
+              if (!template) {
+                return;
+              }
+              template.body = value;
               await plugin.saveSettings();
             });
           ta.inputEl.rows = 6;

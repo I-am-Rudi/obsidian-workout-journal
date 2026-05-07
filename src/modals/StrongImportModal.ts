@@ -165,7 +165,9 @@ export class StrongImportModal extends Modal {
       cls: "mod-cta",
     });
     this.importBtnEl.disabled = true;
-    this.importBtnEl.addEventListener("click", () => this.runImport());
+    this.importBtnEl.addEventListener("click", () => {
+      void this.runImport();
+    });
   }
 
   onClose() {

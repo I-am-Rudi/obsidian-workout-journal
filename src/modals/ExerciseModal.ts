@@ -102,7 +102,7 @@ export class ExerciseModal extends Modal {
     // Submit button
     new Setting(contentEl).addButton((btn) =>
       btn
-        .setButtonText(this.isEditing ? "Update Exercise" : "Add Exercise")
+        .setButtonText(this.isEditing ? "Update exercise" : "Add exercise")
         .setCta()
         .onClick(() => {
           if (this.exercise.name) {
