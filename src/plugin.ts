@@ -86,13 +86,27 @@ export default class WorkoutTrackerPlugin extends Plugin {
     );
     this.registerEvent(this.fileModifyEventRef);
 
-    const ribbonIconEl = this.addRibbonIcon(
-      "biceps-flexed",
-      "Workout Journal",
-      () => {
-        new WorkoutTypeSelectionModal(this.app, this).open();
-      }
-    );
+    const openWorkoutTypeModal = () => {
+      new WorkoutTypeSelectionModal(this.app, this).open();
+    };
+    let ribbonIconEl;
+    try {
+      ribbonIconEl = this.addRibbonIcon(
+        "biceps-flexed",
+        "Workout Journal",
+        openWorkoutTypeModal
+      );
+    } catch (error) {
+      console.warn(
+        "Workout Journal: icon 'biceps-flexed' unavailable, falling back to 'calendar'.",
+        error
+      );
+      ribbonIconEl = this.addRibbonIcon(
+        "calendar",
+        "Workout Journal",
+        openWorkoutTypeModal
+      );
+    }
     ribbonIconEl.addClass("workout-tracker-ribbon-class");
 
     this.app.workspace.onLayoutReady(async () => {
