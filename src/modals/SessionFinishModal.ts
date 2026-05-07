@@ -24,7 +24,7 @@ export class SessionFinishModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
 
-    contentEl.createEl("h2", { text: "Finish Workout" });
+    contentEl.createEl("h2", { text: "Finish workout" });
 
     if (this.hasUnfinishedSets) {
       new Setting(contentEl)
@@ -65,7 +65,7 @@ export class SessionFinishModal extends Modal {
 
     new Setting(contentEl).addButton((btn) =>
       btn
-        .setButtonText("Finish Workout")
+        .setButtonText("Finish workout")
         .setCta()
         .onClick(() => {
           this.onSubmit(this.options);

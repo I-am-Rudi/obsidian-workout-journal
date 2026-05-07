@@ -14,12 +14,12 @@ export class NoteContentTemplatesPage {
 
     new Setting(containerEl)
       .addButton((btn) =>
-        btn.setButtonText("← General Settings").onClick(() => {
+        btn.setButtonText("← General settings").onClick(() => {
           onBack();
         })
       );
 
-    containerEl.createEl("h2", { text: "Note Content Templates" });
+    containerEl.createEl("h2", { text: "Note content templates" });
     containerEl.createEl("p", {
       text: "Extra frontmatter properties (YAML) and body text appended to each generated note type. Plugin-managed properties (wj-id, wj-name, wj-type, etc.) always take precedence over template frontmatter.",
       cls: "setting-item-description",
@@ -29,7 +29,7 @@ export class NoteContentTemplatesPage {
       containerEl.createEl("h3", { text: label });
 
       new Setting(containerEl)
-        .setName("Additional Frontmatter")
+        .setName("Additional frontmatter")
         .setDesc("YAML properties merged into the note frontmatter (plugin properties take precedence).")
         .addTextArea((ta) => {
           ta.setPlaceholder("tag: my-tag\nstatus: active")
@@ -45,12 +45,11 @@ export class NoteContentTemplatesPage {
               await plugin.saveSettings();
             });
           ta.inputEl.rows = 4;
-          ta.inputEl.style.width = "100%";
-          ta.inputEl.style.fontFamily = "monospace";
+          ta.inputEl.addClass("note-template-frontmatter-ta");
         });
 
       new Setting(containerEl)
-        .setName("Additional Body")
+        .setName("Additional body")
         .setDesc("Markdown text appended beneath the generated note content.")
         .addTextArea((ta) => {
           ta.setPlaceholder("## My Section\n\nCustom content here…")
@@ -66,7 +65,7 @@ export class NoteContentTemplatesPage {
               await plugin.saveSettings();
             });
           ta.inputEl.rows = 6;
-          ta.inputEl.style.width = "100%";
+          ta.inputEl.addClass("note-template-body-ta");
         });
     }
   }

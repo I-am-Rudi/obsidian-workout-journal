@@ -22,63 +22,63 @@ export class ExerciseTemplateSettingModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 
-		contentEl.createEl("h2", { text: "Add Exercise Template" });
+		contentEl.createEl("h2", { text: "Add exercise template" });
 
 		new Setting(contentEl)
-			.setName('Exercise Name')
+			.setName('Exercise name')
 			.addText(text => text
 				.setPlaceholder('Push-up')
-				.onChange(async (value) => {
+				.onChange((value) => {
 					this.template.name = value;
 				}));
 
 		new Setting(contentEl)
-			.setName('Exercise Type')
+			.setName('Exercise type')
 			.addDropdown(dropdown => dropdown
 				.addOption('strength', 'Strength')
 				.addOption('cardio', 'Cardio')
 				.addOption('flexibility', 'Flexibility')
 				.addOption('other', 'Other')
 				.setValue(this.template.type)
-				.onChange(async (value) => {
+				.onChange((value) => {
 					this.template.type = value as 'strength' | 'cardio' | 'flexibility' | 'other';
 				}));
 
 		new Setting(contentEl)
-			.setName('Default Sets')
+			.setName('Default sets')
 			.addText(text => text
 				.setPlaceholder('3')
-				.onChange(async (value) => {
+				.onChange((value) => {
 					this.template.defaultSets = value ? parseInt(value) : undefined;
 				}));
 
 		new Setting(contentEl)
-			.setName('Default Reps')
+			.setName('Default reps')
 			.addText(text => text
 				.setPlaceholder('10')
-				.onChange(async (value) => {
+				.onChange((value) => {
 					this.template.defaultReps = value ? parseInt(value) : undefined;
 				}));
 
 		new Setting(contentEl)
-			.setName(`Default Weight (${this.plugin.settings.weightUnit})`)
+			.setName(`Default weight (${this.plugin.settings.weightUnit})`)
 			.addText(text => text
 				.setPlaceholder('135')
-				.onChange(async (value) => {
+				.onChange((value) => {
 					this.template.defaultWeight = value ? parseFloat(value) : undefined;
 				}));
 
 		new Setting(contentEl)
-			.setName('Muscle Groups (comma-separated)')
+			.setName('Muscle groups (comma-separated)')
 			.addText(text => text
 				.setPlaceholder('chest, triceps, shoulders')
-				.onChange(async (value) => {
+				.onChange((value) => {
 					this.template.muscleGroups = value.split(',').map(s => s.trim()).filter(s => s);
 				}));
 
 		new Setting(contentEl)
 			.addButton(btn => btn
-				.setButtonText('Save Template')
+				.setButtonText('Save template')
 				.setCta()
 				.onClick(async () => {
 					if (this.template.name && this.template.muscleGroups.length > 0) {

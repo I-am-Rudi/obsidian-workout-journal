@@ -40,7 +40,6 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    new Setting(containerEl).setName("Workout journal").setHeading();
     containerEl.createEl("p", {
       text: "Configure folders, tracking behavior, and library tools for Workout Journal.",
       cls: "setting-item-description",
@@ -66,7 +65,7 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
       .setDesc("Folder containing exercise definition notes")
       .addText((text) =>
         text
-          .setPlaceholder("Workout Library/Exercises")
+          .setPlaceholder("Workout library/Exercises")
           .setValue(this.plugin.settings.exerciseLibraryFolder)
           .onChange(async (value) => {
             this.plugin.settings.exerciseLibraryFolder = value.trim()
@@ -81,7 +80,7 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
       .setDesc("Folder containing routine definition notes")
       .addText((text) =>
         text
-          .setPlaceholder("Workout Library/Routines")
+          .setPlaceholder("Workout library/Routines")
           .setValue(this.plugin.settings.routinesFolder)
           .onChange(async (value) => {
             this.plugin.settings.routinesFolder = value.trim()
@@ -96,7 +95,7 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
       .setDesc("Folder containing workout plan definition notes")
       .addText((text) =>
         text
-          .setPlaceholder("Workout Library/Plans")
+          .setPlaceholder("Workout library/Plans")
           .setValue(this.plugin.settings.workoutPlansFolder)
           .onChange(async (value) => {
             this.plugin.settings.workoutPlansFolder = value.trim()
@@ -303,7 +302,7 @@ export class WorkoutTrackerSettingTab extends PluginSettingTab {
 
   private renderPlans(): void {
     const { containerEl } = this;
-    new PlanSettingsPage().render(containerEl, this.app, this.plugin, () => {
+    void new PlanSettingsPage().render(containerEl, this.app, this.plugin, () => {
       this.currentPage = "main";
       this.display();
     });

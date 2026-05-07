@@ -9,12 +9,12 @@ export class PlanSettingsPage {
 
     new Setting(containerEl)
       .addButton((btn) =>
-        btn.setButtonText("← General Settings").onClick(() => {
+        btn.setButtonText("← General settings").onClick(() => {
           onBack();
         })
       );
 
-    containerEl.createEl("h2", { text: "Workout Plans" });
+    containerEl.createEl("h2", { text: "Workout plans" });
     containerEl.createEl("p", {
       text: "Plans combine multiple routines into a training program. Each plan is stored as a note.",
       cls: "setting-item-description",
@@ -34,7 +34,7 @@ export class PlanSettingsPage {
 
     new Setting(containerEl).addButton((btn) =>
       btn
-        .setButtonText("Create New Plan")
+        .setButtonText("Create new plan")
         .setCta()
         .onClick(async () => {
           const routines = await plugin.definitionService.loadRoutineDefinitions();
@@ -76,8 +76,8 @@ export class PlanSettingsPage {
 
       if (plan.filePath) {
         setting.addButton((btn) =>
-          btn.setButtonText("Open Note").onClick(async () => {
-            await app.workspace.openLinkText(plan.filePath!, "", false);
+          btn.setButtonText("Open note").onClick(async () => {
+            await app.workspace.openLinkText(plan.filePath, "", false);
           })
         );
       }

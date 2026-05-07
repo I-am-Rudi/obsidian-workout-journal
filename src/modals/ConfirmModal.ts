@@ -18,7 +18,7 @@ export class ConfirmModal extends Modal {
     new Setting(contentEl)
       .addButton((btn) =>
         btn
-          .setButtonText("Discard Session")
+          .setButtonText("Discard session")
           .setWarning()
           .onClick(() => {
             this.onConfirm();
@@ -27,7 +27,7 @@ export class ConfirmModal extends Modal {
       )
       .addButton((btn) =>
         btn
-          .setButtonText("Keep Session")
+          .setButtonText("Keep session")
           .setCta()
           .onClick(() => {
             this.close();

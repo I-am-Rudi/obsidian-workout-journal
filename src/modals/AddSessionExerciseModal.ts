@@ -27,7 +27,7 @@ export class AddSessionExerciseModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h2", { text: "Add Exercise to Session" });
+    contentEl.createEl("h2", { text: "Add exercise to session" });
 
     new Setting(contentEl).setName("Search").addText((text) => {
       text.setPlaceholder("Type to filter exercises…").onChange((value) => {

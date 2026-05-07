@@ -21,7 +21,7 @@ export class PlanSelectionModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h2", { text: "Start Workout From Plan" });
+    contentEl.createEl("h2", { text: "Start workout from plan" });
 
     if (!this.plans.length) {
       contentEl.createEl("p", { text: "No workout plan notes found." });
