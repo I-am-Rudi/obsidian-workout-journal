@@ -1,4 +1,4 @@
-import { App, TFile } from "obsidian";
+import { App, normalizePath, TFile } from "obsidian";
 import { Workout, WorkoutSession } from "../types";
 import { createIdFromName } from "./idUtils";
 
@@ -35,11 +35,11 @@ export class PerformanceCsvService {
 
   constructor(app: App, csvPath: string) {
     this.app = app;
-    this.csvPath = csvPath;
+    this.csvPath = this.normalizeUserPath(csvPath);
   }
 
   setPath(csvPath: string) {
-    this.csvPath = csvPath;
+    this.csvPath = this.normalizeUserPath(csvPath);
   }
 
   async ensureFile(): Promise<TFile> {
@@ -319,5 +319,10 @@ export class PerformanceCsvService {
     if (!value) return undefined;
     const parsed = Number(value);
     return Number.isNaN(parsed) ? undefined : parsed;
+  }
+
+  private normalizeUserPath(path: string): string {
+    const trimmed = path.trim();
+    return trimmed ? normalizePath(trimmed) : "";
   }
 }

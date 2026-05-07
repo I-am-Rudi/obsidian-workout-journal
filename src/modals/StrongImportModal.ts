@@ -52,14 +52,14 @@ export class StrongImportModal extends Modal {
     contentEl.empty();
     contentEl.addClass("strong-import-modal");
 
-    contentEl.createEl("h2", { text: "Import from Strong App" });
+    new Setting(contentEl).setName("Import from Strong app").setHeading();
     contentEl.createEl("p", {
       text: "Import your workout history exported from the Strong app.",
       cls: "setting-item-description",
     });
 
     // ── Workouts CSV ──────────────────────────────────────────────────────
-    contentEl.createEl("h3", { text: "Workouts" });
+    new Setting(contentEl).setName("Workouts").setHeading();
 
     const workoutsInput = contentEl.createEl("input");
     workoutsInput.type = "file";
@@ -94,7 +94,7 @@ export class StrongImportModal extends Modal {
     });
 
     // ── Options ───────────────────────────────────────────────────────────
-    contentEl.createEl("h3", { text: "Options" });
+    new Setting(contentEl).setName("Options").setHeading();
 
     // Weight unit warning
     const configuredUnit = this.plugin.settings.weightUnit;
@@ -146,7 +146,7 @@ export class StrongImportModal extends Modal {
       );
 
     // ── Preview ───────────────────────────────────────────────────────────
-    contentEl.createEl("h3", { text: "Preview" });
+    new Setting(contentEl).setName("Preview").setHeading();
     this.previewEl = contentEl.createEl("p", {
       text: "Load a workouts.csv file to see a preview.",
       cls: "setting-item-description",

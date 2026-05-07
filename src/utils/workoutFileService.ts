@@ -1,4 +1,4 @@
-import { App, TFile, Notice } from "obsidian";
+import { App, normalizePath, TFile, Notice } from "obsidian";
 import { Workout, Exercise, ExerciseSet, WorkoutTrackerSettings } from "../types";
 import { parseYaml, stringifyYaml } from "obsidian";
 import { parseTemplateFrontmatter, appendTemplateBody } from "./noteTemplateUtils";
@@ -10,13 +10,13 @@ export class WorkoutFileService {
 
   constructor(app: App, workoutFolder: string, settings?: WorkoutTrackerSettings) {
     this.app = app;
-    this.workoutFolder = workoutFolder;
+    this.workoutFolder = this.normalizeUserPath(workoutFolder);
     if (settings) this.settings = settings;
   }
 
   setSettings(settings: WorkoutTrackerSettings) {
     this.settings = settings;
-    this.workoutFolder = settings.defaultWorkoutFolder;
+    this.workoutFolder = this.normalizeUserPath(settings.defaultWorkoutFolder);
   }
 
   /**
@@ -141,29 +141,28 @@ export class WorkoutFileService {
    */
   async syncFrontmatterWithContent(file: TFile): Promise<boolean> {
     try {
-      const content = await this.app.vault.read(file);
+      const originalContent = await this.app.vault.read(file);
+      await this.app.vault.process(file, (content) => {
+        // Try to parse the workout data from markdown body first (since that's what users edit)
+        let workout = this.parseWorkoutFromMarkdownBody(content, file.basename);
 
-      // Try to parse the workout data from markdown body first (since that's what users edit)
-      let workout = this.parseWorkoutFromMarkdownBody(content, file.basename);
-
-      // If markdown body parsing fails, fall back to frontmatter parsing
-      if (!workout) {
-        workout = this.parseWorkoutFromContent(content, file.basename);
+        // If markdown body parsing fails, fall back to frontmatter parsing
         if (!workout) {
-          return false;
+          workout = this.parseWorkoutFromContent(content, file.basename);
+          if (!workout) {
+            return content;
+          }
         }
-      }
 
-      // Always regenerate the file with updated frontmatter based on the parsed content
-      const expectedContent = this.generateWorkoutFileContent(workout);
-
-      // Only update if the content has actually changed
-      if (content !== expectedContent) {
-        await this.app.vault.modify(file, expectedContent);
-        return true;
-      }
-
-      return false;
+        // Always regenerate the file with updated frontmatter based on the parsed content
+        const expectedContent = this.generateWorkoutFileContent(workout);
+        if (content === expectedContent) {
+          return content;
+        }
+        return expectedContent;
+      });
+      const updatedContent = await this.app.vault.read(file);
+      return updatedContent !== originalContent;
     } catch (error) {
       console.error(`Error syncing frontmatter for ${file.path}:`, error);
       return false;
@@ -291,7 +290,7 @@ export class WorkoutFileService {
       // Extract frontmatter
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
       if (!frontmatterMatch) {
-        console.warn(`No frontmatter found in workout file: ${fallbackName}`);
+        console.debug(`No frontmatter found in workout file: ${fallbackName}`);
         return null;
       }
 
@@ -300,7 +299,7 @@ export class WorkoutFileService {
 
       // Validate and construct workout object
       if (!frontmatter || frontmatter['wj-type'] !== "workout") {
-        console.warn(`Invalid workout frontmatter in file: ${fallbackName}`);
+        console.debug(`Invalid workout frontmatter in file: ${fallbackName}`);
         return null;
       }
 
@@ -485,5 +484,10 @@ export class WorkoutFileService {
       sets: exerciseData.sets || [],
       notes: exerciseData.notes,
     }));
+  }
+
+  private normalizeUserPath(path: string): string {
+    const trimmed = path.trim();
+    return trimmed ? normalizePath(trimmed) : "";
   }
 }
