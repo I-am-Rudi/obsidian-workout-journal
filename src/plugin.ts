@@ -631,7 +631,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
       let latestSet: WorkoutSessionSet | undefined;
       for (let i = exercise.sets.length - 1; i >= 0; i--) {
         const set = exercise.sets[i];
-        if (set.completed && set.actualReps !== undefined && set.actualWeight !== undefined) {
+        if (set.completed && (set.actualReps !== undefined || set.actualWeight !== undefined)) {
           latestSet = set;
           break;
         }
@@ -640,8 +640,8 @@ export default class WorkoutTrackerPlugin extends Plugin {
         continue;
       }
 
-      const lastReps = latestSet.actualReps;
-      const lastWeight = latestSet.actualWeight;
+      const lastReps = latestSet.actualReps ?? definition.lastPerformedReps;
+      const lastWeight = latestSet.actualWeight ?? definition.lastPerformedWeight;
       if (
         definition.lastPerformedReps === lastReps &&
         definition.lastPerformedWeight === lastWeight
