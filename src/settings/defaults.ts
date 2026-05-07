@@ -1,9 +1,4 @@
-import {
-  WorkoutTrackerSettings,
-  ExerciseTemplate,
-  WorkoutTemplate,
-  NoteContentTemplates,
-} from "../types";
+import { WorkoutTrackerSettings } from "../types";
 
 export const DEFAULT_SETTINGS: WorkoutTrackerSettings = {
   defaultWorkoutFolder: "Workouts",

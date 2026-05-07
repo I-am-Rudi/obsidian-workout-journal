@@ -1,7 +1,6 @@
 import {
   App,
   normalizePath,
-  Notice,
   TFile,
   parseYaml,
   stringifyYaml,

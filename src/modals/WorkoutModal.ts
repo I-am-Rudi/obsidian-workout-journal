@@ -30,7 +30,7 @@ export class WorkoutModal extends Modal {
       .setDesc("Enter a name for this workout")
       .addText((text) =>
         text
-          .setPlaceholder("e.g., Morning Run, Push Day")
+          .setPlaceholder("e.g., morning run, push day")
           .setValue(this.workout.name)
           .onChange((value) => {
             this.workout.name = value;

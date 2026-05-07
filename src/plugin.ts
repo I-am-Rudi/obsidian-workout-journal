@@ -1,5 +1,4 @@
 import {
-  App,
   Editor,
   EventRef,
   MarkdownFileInfo,
@@ -24,7 +23,7 @@ import { WorkoutFileService } from "./utils/workoutFileService";
 import { DefinitionFileService } from "./utils/definitionFileService";
 import { PerformanceCsvService } from "./utils/performanceCsvService";
 import { WorkoutSessionService } from "./utils/workoutSessionService";
-import { generateId, createIdFromName } from "./utils/idUtils";
+import { createIdFromName } from "./utils/idUtils";
 import {
   ExerciseTemplateModal,
   InputPromptModal,
@@ -267,7 +266,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
 
     this.addCommand({
       id: "import-from-strong",
-      name: "Import from Strong app",
+      name: "Import from strong app",
       callback: () => new StrongImportModal(this.app, this).open(),
     });
 

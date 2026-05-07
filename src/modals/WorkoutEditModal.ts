@@ -1,5 +1,5 @@
 import { App, Modal, Notice, Setting, TFile } from "obsidian";
-import { Workout, Exercise } from "../types";
+import { Workout } from "../types";
 import { WorkoutFileService } from "../utils/workoutFileService";
 import { ExerciseModal } from "./ExerciseModal";
 import WorkoutTrackerPlugin from "../plugin";
@@ -38,7 +38,7 @@ export class WorkoutEditModal extends Modal {
       .setDesc("Enter a name for this workout")
       .addText((text) =>
         text
-          .setPlaceholder("e.g., Morning Run, Push Day")
+          .setPlaceholder("e.g., morning run, push day")
           .setValue(this.workout.name)
           .onChange((value) => {
             this.workout.name = value;

@@ -251,7 +251,7 @@ export class WorkoutSessionView extends ItemView {
       if (exercise.exerciseNotes) {
         const noteBlock = card.createDiv({ cls: "workout-session-exercise-notes" });
         noteBlock.createEl("span", {
-          text: "📝 Exercise Note: ",
+          text: "📝 Exercise note: ",
           cls: "workout-session-exercise-notes-label",
         });
         noteBlock.createEl("span", { text: exercise.exerciseNotes });

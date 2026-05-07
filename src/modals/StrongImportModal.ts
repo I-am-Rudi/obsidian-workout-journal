@@ -52,9 +52,9 @@ export class StrongImportModal extends Modal {
     contentEl.empty();
     contentEl.addClass("strong-import-modal");
 
-    new Setting(contentEl).setName("Import from Strong app").setHeading();
+    new Setting(contentEl).setName("Import from strong app").setHeading();
     contentEl.createEl("p", {
-      text: "Import your workout history exported from the Strong app.",
+      text: "Import your workout history exported from the strong app.",
       cls: "setting-item-description",
     });
 
@@ -72,8 +72,8 @@ export class StrongImportModal extends Modal {
     });
 
     new Setting(contentEl)
-      .setName("workouts.csv")
-      .setDesc('Export your workouts from Strong: Profile → Settings → Export Data → "Workouts CSV"')
+      .setName("Workouts csv")
+      .setDesc('Export your workouts from Strong: profile → settings → export data → "workouts csv"')
       .addButton((btn) =>
         btn.setButtonText("Choose file…").onClick(() => workoutsInput.click())
       );

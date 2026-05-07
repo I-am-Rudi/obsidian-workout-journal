@@ -2,10 +2,10 @@ import { Setting } from "obsidian";
 import WorkoutTrackerPlugin from "../plugin";
 
 const NOTE_TYPES: Array<{ key: "exercise" | "routine" | "plan" | "workout"; label: string }> = [
-  { key: "exercise", label: "Exercise Note" },
-  { key: "routine", label: "Routine Note" },
-  { key: "plan", label: "Plan Note" },
-  { key: "workout", label: "Workout Note" },
+  { key: "exercise", label: "Exercise note" },
+  { key: "routine", label: "Routine note" },
+  { key: "plan", label: "Plan note" },
+  { key: "workout", label: "Workout note" },
 ];
 
 export class NoteContentTemplatesPage {
@@ -14,7 +14,7 @@ export class NoteContentTemplatesPage {
 
     new Setting(containerEl)
       .addButton((btn) =>
-        btn.setButtonText("← General settings").onClick(() => {
+        btn.setButtonText("← Back to general settings").onClick(() => {
           onBack();
         })
       );
@@ -32,7 +32,7 @@ export class NoteContentTemplatesPage {
         .setName("Additional frontmatter")
         .setDesc("YAML properties merged into the note frontmatter (plugin properties take precedence).")
         .addTextArea((ta) => {
-          ta.setPlaceholder("tag: my-tag\nstatus: active")
+          ta.setPlaceholder("Tag: my-tag\nstatus: active")
             .setValue(plugin.settings.noteTemplates?.[key]?.frontmatter ?? "")
             .onChange(async (value) => {
               if (!plugin.settings.noteTemplates) {
@@ -56,7 +56,7 @@ export class NoteContentTemplatesPage {
         .setName("Additional body")
         .setDesc("Markdown text appended beneath the generated note content.")
         .addTextArea((ta) => {
-          ta.setPlaceholder("## My Section\n\nCustom content here…")
+          ta.setPlaceholder("## My section\n\nCustom content here…")
             .setValue(plugin.settings.noteTemplates?.[key]?.body ?? "")
             .onChange(async (value) => {
               if (!plugin.settings.noteTemplates) {
