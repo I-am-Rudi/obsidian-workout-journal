@@ -175,7 +175,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
         const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
         if (markdownView && markdownView.file) {
           if (!checking) {
-            this.editWorkoutFile(markdownView.file);
+            void this.editWorkoutFile(markdownView.file);
           }
           return true;
         }
@@ -258,7 +258,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
         const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
         if (markdownView && markdownView.file) {
           if (!checking) {
-            this.createRoutineFromWorkoutFile(markdownView.file);
+            void this.createRoutineFromWorkoutFile(markdownView.file);
           }
           return true;
         }
@@ -577,7 +577,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
       type: WORKOUT_SESSION_VIEW_TYPE,
       active: true,
     });
-    this.app.workspace.revealLeaf(leaf);
+    void this.app.workspace.revealLeaf(leaf);
 
     const view = leaf.view;
     if (view instanceof WorkoutSessionView && this.activeSession) {
