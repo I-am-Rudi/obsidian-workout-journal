@@ -627,26 +627,31 @@ export default class WorkoutTrackerPlugin extends Plugin {
         continue;
       }
 
-      const latestSet = [...exercise.sets]
-        .reverse()
-        .find((set) => set.completed && (set.actualReps !== undefined || set.actualWeight !== undefined));
+      let latestSet = undefined;
+      for (let i = exercise.sets.length - 1; i >= 0; i--) {
+        const set = exercise.sets[i];
+        if (set.completed && (set.actualReps !== undefined || set.actualWeight !== undefined)) {
+          latestSet = set;
+          break;
+        }
+      }
       if (!latestSet) {
         continue;
       }
 
-      const nextReps = latestSet.actualReps;
-      const nextWeight = latestSet.actualWeight;
+      const lastReps = latestSet.actualReps;
+      const lastWeight = latestSet.actualWeight;
       if (
-        definition.lastPerformedReps === nextReps &&
-        definition.lastPerformedWeight === nextWeight
+        definition.lastPerformedReps === lastReps &&
+        definition.lastPerformedWeight === lastWeight
       ) {
         continue;
       }
 
       await this.definitionService.createExerciseDefinition({
         ...definition,
-        lastPerformedReps: nextReps,
-        lastPerformedWeight: nextWeight,
+        lastPerformedReps: lastReps,
+        lastPerformedWeight: lastWeight,
       });
     }
   }
