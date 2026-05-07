@@ -31,16 +31,16 @@ export class ExerciseModal extends Modal {
     contentEl.empty();
 
     contentEl.createEl("h2", {
-      text: this.isEditing ? "Edit Exercise" : "Add Exercise",
+      text: this.isEditing ? "Edit exercise" : "Add exercise",
     });
 
     // Exercise name with autocomplete from templates
     const nameContainer = contentEl.createDiv();
-    new Setting(nameContainer).setName("Exercise Name").addText((text) => {
+    new Setting(nameContainer).setName("Exercise name").addText((text) => {
       text
         .setPlaceholder("Enter exercise name")
         .setValue(this.exercise.name)
-        .onChange(async (value) => {
+        .onChange((value) => {
           this.exercise.name = value;
         });
 
@@ -57,7 +57,7 @@ export class ExerciseModal extends Modal {
 
     // Load from template button
     new Setting(contentEl).addButton((btn) =>
-      btn.setButtonText("Load from Template").onClick(() => {
+      btn.setButtonText("Load from template").onClick(() => {
         const template = this.plugin.settings.exerciseTemplates.find(
           (t) => t.name === this.exercise.name
         );
@@ -83,7 +83,7 @@ export class ExerciseModal extends Modal {
 
     // Add set button
     new Setting(contentEl).addButton((btn) =>
-      btn.setButtonText("Add Set").onClick(() => {
+      btn.setButtonText("Add set").onClick(() => {
         this.exercise.sets.push({});
         this.renderSets(setsContainer);
       })
@@ -94,7 +94,7 @@ export class ExerciseModal extends Modal {
       text
         .setPlaceholder("Exercise notes...")
         .setValue(this.exercise.notes || "")
-        .onChange(async (value) => {
+        .onChange((value) => {
           this.exercise.notes = value;
         })
     );
@@ -102,7 +102,7 @@ export class ExerciseModal extends Modal {
     // Submit button
     new Setting(contentEl).addButton((btn) =>
       btn
-        .setButtonText(this.isEditing ? "Update Exercise" : "Add Exercise")
+        .setButtonText(this.isEditing ? "Update exercise" : "Add exercise")
         .setCta()
         .onClick(() => {
           if (this.exercise.name) {
@@ -135,7 +135,7 @@ export class ExerciseModal extends Modal {
         text
           .setPlaceholder("12")
           .setValue(set.reps?.toString() || "")
-          .onChange(async (value) => {
+          .onChange((value) => {
             set.reps = value ? parseInt(value) : undefined;
           })
       );
@@ -147,7 +147,7 @@ export class ExerciseModal extends Modal {
         text
           .setPlaceholder("135")
           .setValue(set.weight?.toString() || "")
-          .onChange(async (value) => {
+          .onChange((value) => {
             set.weight = value ? parseFloat(value) : undefined;
           })
       );
@@ -157,7 +157,7 @@ export class ExerciseModal extends Modal {
         text
           .setPlaceholder("30")
           .setValue(set.duration?.toString() || "")
-          .onChange(async (value) => {
+          .onChange((value) => {
             set.duration = value ? parseFloat(value) : undefined;
           })
       );
@@ -165,7 +165,7 @@ export class ExerciseModal extends Modal {
       // Remove set button
       new Setting(setContainer).addButton((btn) =>
         btn
-          .setButtonText("Remove Set")
+          .setButtonText("Remove set")
           .setWarning()
           .onClick(() => {
             this.exercise.sets.splice(index, 1);

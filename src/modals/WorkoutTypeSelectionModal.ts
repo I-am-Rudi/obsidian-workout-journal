@@ -16,54 +16,58 @@ export class WorkoutTypeSelectionModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
 
-    contentEl.createEl("h2", { text: "Workout Journal" });
+    contentEl.createEl("h2", { text: "Workout journal" });
 
     new Setting(contentEl)
-      .setName("Quick Log")
+      .setName("Quick log")
       .setDesc("Create a detailed workout with multiple exercises")
       .addButton((btn) =>
-        btn.setButtonText("Add Workout").onClick(() => {
+        btn.setButtonText("Add workout").onClick(() => {
           this.close();
           new WorkoutModal(this.app, this.plugin).open();
         })
       );
 
     new Setting(contentEl)
-      .setName("View Statistics")
+      .setName("View statistics")
       .setDesc("See your workout progress and statistics")
       .addButton((btn) =>
-        btn.setButtonText("View Stats").onClick(() => {
+        btn.setButtonText("View stats").onClick(() => {
           this.close();
           new WorkoutStatsModal(this.app, this.plugin).open();
         })
       );
 
     new Setting(contentEl)
-      .setName("Start From Routine")
+      .setName("Start from routine")
       .setDesc("Load previous targets and track a routine session")
       .addButton((btn) =>
-        btn.setButtonText("Choose Routine").onClick(async () => {
+        btn.setButtonText("Choose routine").onClick(() => {
           this.close();
-          const routines = await this.plugin.definitionService.loadRoutineDefinitions();
-          new RoutineSelectionModal(this.app, routines, async (routine) => {
-            await this.plugin.startSessionFromRoutine(routine, true);
-          }).open();
+          void (async () => {
+            const routines = await this.plugin.definitionService.loadRoutineDefinitions();
+            new RoutineSelectionModal(this.app, routines, (routine) => {
+              void this.plugin.startSessionFromRoutine(routine, true);
+            }).open();
+          })();
         })
       );
 
     new Setting(contentEl)
-      .setName("Start From Plan")
+      .setName("Start from plan")
       .setDesc("Choose a routine from a workout plan")
       .addButton((btn) =>
-        btn.setButtonText("Choose Plan").onClick(async () => {
+        btn.setButtonText("Choose plan").onClick(() => {
           this.close();
-          const [plans, routines] = await Promise.all([
-            this.plugin.definitionService.loadPlanDefinitions(),
-            this.plugin.definitionService.loadRoutineDefinitions(),
-          ]);
-          new PlanSelectionModal(this.app, plans, routines, async (plan, routine) => {
-            await this.plugin.startSessionFromRoutine(routine, true, plan);
-          }).open();
+          void (async () => {
+            const [plans, routines] = await Promise.all([
+              this.plugin.definitionService.loadPlanDefinitions(),
+              this.plugin.definitionService.loadRoutineDefinitions(),
+            ]);
+            new PlanSelectionModal(this.app, plans, routines, (plan, routine) => {
+              void this.plugin.startSessionFromRoutine(routine, true, plan);
+            }).open();
+          })();
         })
       );
   }

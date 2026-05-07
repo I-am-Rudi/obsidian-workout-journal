@@ -9,12 +9,12 @@ export class PlanSettingsPage {
 
     new Setting(containerEl)
       .addButton((btn) =>
-        btn.setButtonText("← General Settings").onClick(() => {
+        btn.setButtonText("← General settings").onClick(() => {
           onBack();
         })
       );
 
-    containerEl.createEl("h2", { text: "Workout Plans" });
+    containerEl.createEl("h2", { text: "Workout plans" });
     containerEl.createEl("p", {
       text: "Plans combine multiple routines into a training program. Each plan is stored as a note.",
       cls: "setting-item-description",
@@ -34,13 +34,15 @@ export class PlanSettingsPage {
 
     new Setting(containerEl).addButton((btn) =>
       btn
-        .setButtonText("Create New Plan")
+        .setButtonText("Create new plan")
         .setCta()
-        .onClick(async () => {
-          const routines = await plugin.definitionService.loadRoutineDefinitions();
-          new PlanBuilderModal(app, plugin, routines, async () => {
-            await renderList();
-          }).open();
+        .onClick(() => {
+          void (async () => {
+            const routines = await plugin.definitionService.loadRoutineDefinitions();
+            new PlanBuilderModal(app, plugin, routines, () => {
+              void renderList();
+            }).open();
+          })();
         })
     );
   }
@@ -76,8 +78,8 @@ export class PlanSettingsPage {
 
       if (plan.filePath) {
         setting.addButton((btn) =>
-          btn.setButtonText("Open Note").onClick(async () => {
-            await app.workspace.openLinkText(plan.filePath!, "", false);
+          btn.setButtonText("Open note").onClick(() => {
+            void app.workspace.openLinkText(plan.filePath, "", false);
           })
         );
       }
@@ -86,19 +88,21 @@ export class PlanSettingsPage {
         btn
           .setButtonText("Delete")
           .setWarning()
-          .onClick(async () => {
-            if (!plan.filePath) {
-              new Notice("Cannot delete: plan file path is unknown.");
-              return;
-            }
-            const file = app.vault.getAbstractFileByPath(plan.filePath);
-            if (!(file instanceof TFile)) {
-              new Notice("Plan note file not found.");
-              return;
-            }
-            await app.vault.delete(file);
-            new Notice(`Deleted plan: ${plan.name}`);
-            await onRefresh();
+          .onClick(() => {
+            void (async () => {
+              if (!plan.filePath) {
+                new Notice("Cannot delete: plan file path is unknown.");
+                return;
+              }
+              const file = app.vault.getAbstractFileByPath(plan.filePath);
+              if (!(file instanceof TFile)) {
+                new Notice("Plan note file not found.");
+                return;
+              }
+              await app.vault.delete(file);
+              new Notice(`Deleted plan: ${plan.name}`);
+              await onRefresh();
+            })();
           })
       );
     });

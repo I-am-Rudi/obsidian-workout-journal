@@ -14,7 +14,7 @@ export class QuickWorkoutModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 
-		contentEl.createEl("h2", { text: "Quick Workout Log" });
+		contentEl.createEl("h2", { text: "Quick workout log" });
 		contentEl.createEl("p", { text: "Select a workout template to quickly log:" });
 
 		this.plugin.settings.workoutTemplates.forEach(template => {
@@ -22,9 +22,9 @@ export class QuickWorkoutModal extends Modal {
 				.setName(template.name)
 				.setDesc(`Exercises: ${template.exercises.join(', ')} | Duration: ~${template.estimatedDuration} min`)
 				.addButton(btn => btn
-					.setButtonText('Use Template')
+					.setButtonText('Use template')
 					.onClick(() => {
-						this.createWorkoutFromTemplate(template);
+						void this.createWorkoutFromTemplate(template);
 					}));
 		});
 	}

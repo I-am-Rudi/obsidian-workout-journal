@@ -64,7 +64,7 @@ export class StrongImportModal extends Modal {
     const workoutsInput = contentEl.createEl("input");
     workoutsInput.type = "file";
     workoutsInput.accept = ".csv";
-    workoutsInput.style.display = "none";
+    workoutsInput.hide();
 
     this.workoutsFileLabel = contentEl.createEl("p", {
       text: "No file selected",
@@ -78,19 +78,21 @@ export class StrongImportModal extends Modal {
         btn.setButtonText("Choose file…").onClick(() => workoutsInput.click())
       );
 
-    workoutsInput.addEventListener("change", async () => {
-      const file = workoutsInput.files?.[0];
-      if (!file) return;
-      this.workoutsFileLabel.setText(`Selected: ${file.name}`);
-      this.clearError();
-      try {
-        const content = await readFileAsText(file);
-        this.parsedWorkouts = parseStrongWorkoutsCsv(content);
-        this.updatePreview();
-        this.importBtnEl.disabled = false;
-      } catch (err) {
-        this.showError(`Failed to parse workouts.csv: ${(err as Error).message}`);
-      }
+    workoutsInput.addEventListener("change", () => {
+      void (async () => {
+        const file = workoutsInput.files?.[0];
+        if (!file) return;
+        this.workoutsFileLabel.setText(`Selected: ${file.name}`);
+        this.clearError();
+        try {
+          const content = await readFileAsText(file);
+          this.parsedWorkouts = parseStrongWorkoutsCsv(content);
+          this.updatePreview();
+          this.importBtnEl.disabled = false;
+        } catch (err) {
+          this.showError(`Failed to parse workouts.csv: ${(err as Error).message}`);
+        }
+      })();
     });
 
     // ── Options ───────────────────────────────────────────────────────────
@@ -154,7 +156,7 @@ export class StrongImportModal extends Modal {
 
     // ── Error area ────────────────────────────────────────────────────────
     this.errorEl = contentEl.createEl("p", { cls: "mod-warning" });
-    this.errorEl.style.display = "none";
+    this.errorEl.hide();
 
     // ── Import button ─────────────────────────────────────────────────────
     const btnSetting = new Setting(contentEl);
@@ -163,7 +165,9 @@ export class StrongImportModal extends Modal {
       cls: "mod-cta",
     });
     this.importBtnEl.disabled = true;
-    this.importBtnEl.addEventListener("click", () => this.runImport());
+    this.importBtnEl.addEventListener("click", () => {
+      void this.runImport();
+    });
   }
 
   onClose() {
@@ -183,11 +187,11 @@ export class StrongImportModal extends Modal {
 
   private showError(msg: string) {
     this.errorEl.setText(msg);
-    this.errorEl.style.display = "";
+    this.errorEl.show();
   }
 
   private clearError() {
-    this.errorEl.style.display = "none";
+    this.errorEl.hide();
     this.errorEl.setText("");
   }
 

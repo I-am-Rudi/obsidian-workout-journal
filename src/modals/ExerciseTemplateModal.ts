@@ -16,7 +16,7 @@ export class ExerciseTemplateModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 
-		contentEl.createEl("h2", { text: "Insert Exercise Template" });
+		contentEl.createEl("h2", { text: "Insert exercise template" });
 
 		this.plugin.settings.exerciseTemplates.forEach(template => {
 			new Setting(contentEl)

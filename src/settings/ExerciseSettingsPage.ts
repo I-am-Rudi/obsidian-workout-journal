@@ -8,12 +8,12 @@ export class ExerciseSettingsPage {
 
     new Setting(containerEl)
       .addButton((btn) =>
-        btn.setButtonText("← General Settings").onClick(() => {
+        btn.setButtonText("← General settings").onClick(() => {
           onBack();
         })
       );
 
-    containerEl.createEl("h2", { text: "Exercise Templates" });
+    containerEl.createEl("h2", { text: "Exercise templates" });
     containerEl.createEl("p", {
       text: "Exercise templates are legacy definitions stored in plugin settings. Use 'Migrate Templates to Notes' on the main settings page to convert them to full exercise notes.",
       cls: "setting-item-description",
@@ -24,7 +24,7 @@ export class ExerciseSettingsPage {
 
     new Setting(containerEl).addButton((btn) =>
       btn
-        .setButtonText("Add Exercise Template")
+        .setButtonText("Add exercise template")
         .setCta()
         .onClick(() => {
           new ExerciseTemplateSettingModal(app, plugin, () => {

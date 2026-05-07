@@ -474,16 +474,28 @@ export class WorkoutFileService {
   /**
    * Parse exercises from frontmatter
    */
-  private parseExercises(exercisesData: any[]): Exercise[] {
+  private parseExercises(exercisesData: unknown[]): Exercise[] {
     if (!Array.isArray(exercisesData)) {
       return [];
     }
 
-    return exercisesData.map((exerciseData) => ({
-      name: exerciseData.name || "Unknown Exercise",
-      sets: exerciseData.sets || [],
-      notes: exerciseData.notes,
-    }));
+    return exercisesData.map((exerciseData) => {
+      if (typeof exerciseData !== "object" || exerciseData === null) {
+        return { name: "Unknown Exercise", sets: [] };
+      }
+      const candidate = exerciseData as {
+        name?: unknown;
+        sets?: unknown;
+        notes?: unknown;
+      };
+      return {
+        name: typeof candidate.name === "string" && candidate.name.trim()
+          ? candidate.name
+          : "Unknown Exercise",
+        sets: Array.isArray(candidate.sets) ? candidate.sets : [],
+        notes: typeof candidate.notes === "string" ? candidate.notes : undefined,
+      };
+    });
   }
 
   private normalizeUserPath(path: string): string {

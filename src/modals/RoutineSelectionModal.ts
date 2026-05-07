@@ -18,7 +18,7 @@ export class RoutineSelectionModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl("h2", { text: "Start Workout From Routine" });
+    contentEl.createEl("h2", { text: "Start workout from routine" });
 
     if (this.routines.length === 0) {
       contentEl.createEl("p", { text: "No routine notes found." });

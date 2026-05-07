@@ -310,7 +310,7 @@ export class DefinitionFileService {
       );
   }
 
-  private async readFrontmatter(file: TFile): Promise<any | null> {
+  private async readFrontmatter(file: TFile): Promise<Record<string, unknown> | null> {
     const content = await this.app.vault.read(file);
     const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
     if (!frontmatterMatch) {

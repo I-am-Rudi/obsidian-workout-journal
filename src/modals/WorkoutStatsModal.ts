@@ -27,11 +27,15 @@ export class WorkoutStatsModal extends Modal {
     this.statisticsService = new WorkoutStatisticsService();
   }
 
-  async onOpen() {
+  onOpen() {
+    void this._onOpen();
+  }
+
+  private async _onOpen(): Promise<void> {
     const { contentEl } = this;
     contentEl.empty();
 
-    contentEl.createEl("h2", { text: "Workout Statistics" });
+    contentEl.createEl("h2", { text: "Workout statistics" });
 
     // Show loading message
     const loadingEl = contentEl.createDiv({ text: "Loading statistics..." });
@@ -52,35 +56,35 @@ export class WorkoutStatsModal extends Modal {
     overviewSection.createEl("h3", { text: "Overview" });
 
     new Setting(overviewSection)
-      .setName("Total Workouts")
+      .setName("Total workouts")
       .setDesc(stats.totalWorkouts.toString());
 
     new Setting(overviewSection)
-      .setName("Total Exercises")
+      .setName("Total exercises")
       .setDesc(stats.totalExercises.toString());
 
     new Setting(overviewSection)
-      .setName("Total Sets")
+      .setName("Total sets")
       .setDesc(stats.totalSets.toString());
 
     new Setting(overviewSection)
-      .setName("Total Volume")
+      .setName("Total volume")
       .setDesc(
         `${stats.totalVolume.toLocaleString()} ${this.plugin.settings.weightUnit}`
       );
 
     new Setting(overviewSection)
-      .setName("Average Workout Duration")
+      .setName("Average workout duration")
       .setDesc(`${stats.averageWorkoutDuration.toFixed(1)} minutes`);
 
     new Setting(overviewSection)
-      .setName("Current Streak")
+      .setName("Current streak")
       .setDesc(
         `${stats.workoutStreak} day${stats.workoutStreak !== 1 ? "s" : ""}`
       );
 
     new Setting(overviewSection)
-      .setName("Last Workout")
+      .setName("Last workout")
       .setDesc(stats.lastWorkoutDate || "No workouts yet");
 
     // Monthly Workouts Chart
@@ -91,7 +95,7 @@ export class WorkoutStatsModal extends Modal {
 
     if (sortedMonths.length > 0) {
       const monthlySection = container.createDiv({ cls: "wt-chart-section" });
-      monthlySection.createEl("h3", { text: "Monthly Workouts" });
+      monthlySection.createEl("h3", { text: "Monthly workouts" });
       const chartContainer = monthlySection.createDiv({
         cls: "wt-chart-container",
       });
@@ -130,7 +134,7 @@ export class WorkoutStatsModal extends Modal {
     const volumeMonths = Object.keys(monthlyVolume).sort().slice(-12);
     if (volumeMonths.length >= 2) {
       const volumeSection = container.createDiv({ cls: "wt-chart-section" });
-      volumeSection.createEl("h3", { text: "Monthly Volume" });
+      volumeSection.createEl("h3", { text: "Monthly volume" });
       const chartContainer = volumeSection.createDiv({
         cls: "wt-chart-container",
       });
@@ -155,7 +159,7 @@ export class WorkoutStatsModal extends Modal {
     // Exercise Frequency Chart
     if (Object.keys(stats.exerciseFrequency).length > 0) {
       const frequencySection = container.createDiv({ cls: "wt-chart-section" });
-      frequencySection.createEl("h3", { text: "Exercise Frequency" });
+      frequencySection.createEl("h3", { text: "Exercise frequency" });
 
       const sortedExercises = Object.entries(stats.exerciseFrequency)
         .sort(([, a], [, b]) => b - a)
@@ -175,7 +179,7 @@ export class WorkoutStatsModal extends Modal {
     // Personal Records
     if (Object.keys(stats.personalRecords).length > 0) {
       const prSection = container.createDiv();
-      prSection.createEl("h3", { text: "Personal Records" });
+      prSection.createEl("h3", { text: "Personal records" });
 
       Object.entries(stats.personalRecords).forEach(([exercise, record]) => {
         new Setting(prSection)
@@ -188,7 +192,7 @@ export class WorkoutStatsModal extends Modal {
 
     // Recent Activity
     const recentSection = container.createDiv();
-    recentSection.createEl("h3", { text: "Recent Activity" });
+    recentSection.createEl("h3", { text: "Recent activity" });
 
     const recentDates = Object.keys(stats.workoutsByDate).sort().slice(-7); // Last 7 days with workouts
 
@@ -209,9 +213,9 @@ export class WorkoutStatsModal extends Modal {
 
     // Refresh button
     new Setting(container).addButton((btn) =>
-      btn.setButtonText("Refresh Statistics").onClick(async () => {
+      btn.setButtonText("Refresh statistics").onClick(async () => {
         container.empty();
-        container.createEl("h2", { text: "Workout Statistics" });
+        container.createEl("h2", { text: "Workout statistics" });
         const loadingEl = container.createDiv({
           text: "Loading statistics...",
         });

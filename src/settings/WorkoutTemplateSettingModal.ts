@@ -27,18 +27,18 @@ export class WorkoutTemplateSettingModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 
-		contentEl.createEl("h2", { text: "Add Workout Template" });
+		contentEl.createEl("h2", { text: "Add workout template" });
 
 		new Setting(contentEl)
-			.setName('Template Name')
+			.setName('Template name')
 			.addText(text => text
-				.setPlaceholder('Push Day')
+				.setPlaceholder('Push day')
 				.onChange((value) => {
 					this.template.name = value;
 				}));
 
 		new Setting(contentEl)
-			.setName('Estimated Duration (minutes)')
+			.setName('Estimated duration (minutes)')
 			.addText(text => text
 				.setPlaceholder('60')
 				.setValue(this.template.estimatedDuration.toString())
@@ -47,12 +47,12 @@ export class WorkoutTemplateSettingModal extends Modal {
 				}));
 
 		// Selected exercises display
-		contentEl.createEl("p", { text: "Selected Exercises", cls: "wt-template-exercises-label" });
+		contentEl.createEl("p", { text: "Selected exercises", cls: "wt-template-exercises-label" });
 		this.selectedEl = contentEl.createDiv({ cls: "wt-template-selected-exercises" });
 		this.renderSelected();
 
 		// Search + picker
-		contentEl.createEl("p", { text: "Add from Library", cls: "wt-template-exercises-label" });
+		contentEl.createEl("p", { text: "Add from library", cls: "wt-template-exercises-label" });
 		new Setting(contentEl).setName("Search").addText((text) => {
 			text.setPlaceholder("Type to filter exercises…").onChange((value) => {
 				this.searchQuery = value;
@@ -64,11 +64,11 @@ export class WorkoutTemplateSettingModal extends Modal {
 		this.listEl = contentEl.createDiv({ cls: "workout-add-exercise-list" });
 
 		// Load exercises asynchronously then render list
-		this.loadExercises();
+		void this.loadExercises();
 
 		new Setting(contentEl)
 			.addButton(btn => btn
-				.setButtonText('Save Template')
+				.setButtonText('Save template')
 				.setCta()
 				.onClick(async () => {
 					if (!this.template.name) {

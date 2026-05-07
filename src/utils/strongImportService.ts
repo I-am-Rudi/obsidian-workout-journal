@@ -190,7 +190,15 @@ export function parseStrongWorkoutsCsv(csvContent: string): Workout[] {
   }
 
   return workoutOrder.map((key) => {
-    const w = workoutMap.get(key)!;
+    const w = workoutMap.get(key);
+    if (!w) {
+      return {
+        id: deriveIdFromStrongDate(key),
+        date: key.substring(0, 10),
+        name: "Unknown workout",
+        exercises: [],
+      };
+    }
     return {
       id: deriveIdFromStrongDate(w.dateTime),
       date: w.date,

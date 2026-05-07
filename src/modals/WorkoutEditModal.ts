@@ -30,17 +30,17 @@ export class WorkoutEditModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
 
-    contentEl.createEl("h2", { text: "Edit Workout" });
+    contentEl.createEl("h2", { text: "Edit workout" });
 
     // Workout name input
     new Setting(contentEl)
-      .setName("Workout Name")
+      .setName("Workout name")
       .setDesc("Enter a name for this workout")
       .addText((text) =>
         text
           .setPlaceholder("e.g., Morning Run, Push Day")
           .setValue(this.workout.name)
-          .onChange(async (value) => {
+          .onChange((value) => {
             this.workout.name = value;
           })
       );
@@ -50,7 +50,7 @@ export class WorkoutEditModal extends Modal {
       .setName("Date")
       .setDesc("Workout date")
       .addText((text) =>
-        text.setValue(this.workout.date).onChange(async (value) => {
+        text.setValue(this.workout.date).onChange((value) => {
           this.workout.date = value;
         })
       );
@@ -63,7 +63,7 @@ export class WorkoutEditModal extends Modal {
         text
           .setPlaceholder("60")
           .setValue(this.workout.duration?.toString() || "")
-          .onChange(async (value) => {
+          .onChange((value) => {
             this.workout.duration = value ? parseInt(value) : undefined;
           })
       );
@@ -75,7 +75,7 @@ export class WorkoutEditModal extends Modal {
     // Add exercise button
     new Setting(contentEl).addButton((btn) =>
       btn
-        .setButtonText("Add Exercise")
+        .setButtonText("Add exercise")
         .setCta()
         .onClick(() => {
           new ExerciseModal(this.app, this.plugin, (exercise) => {
@@ -93,19 +93,18 @@ export class WorkoutEditModal extends Modal {
         text
           .setPlaceholder("How did the workout feel? Any observations?")
           .setValue(this.workout.notes || "")
-          .onChange(async (value) => {
+          .onChange((value) => {
             this.workout.notes = value;
           })
       );
 
     // Action buttons
-    const buttonContainer = contentEl.createDiv();
-    buttonContainer.style.marginTop = "20px";
+    const buttonContainer = contentEl.createDiv({ cls: "workout-edit-button-container" });
 
     new Setting(buttonContainer)
       .addButton((btn) =>
         btn
-          .setButtonText("Save Changes")
+          .setButtonText("Save changes")
           .setCta()
           .onClick(async () => {
             if (this.workout.name && this.workout.exercises.length > 0) {
@@ -161,9 +160,8 @@ export class WorkoutEditModal extends Modal {
 
       const editBtn = buttonContainer.createEl("button", {
         text: "Edit",
-        cls: "mod-cta",
+        cls: "mod-cta workout-edit-exercise-btn",
       });
-      editBtn.style.marginRight = "8px";
       editBtn.onclick = () => {
         new ExerciseModal(
           this.app,

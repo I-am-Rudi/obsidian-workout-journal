@@ -27,10 +27,10 @@ export class PlanBuilderModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
 
-    contentEl.createEl("h2", { text: "Create Workout Plan" });
+    contentEl.createEl("h2", { text: "Create workout plan" });
 
     new Setting(contentEl)
-      .setName("Plan Name")
+      .setName("Plan name")
       .addText((text) =>
         text.setPlaceholder("e.g. Push/Pull/Legs").onChange((value) => {
           this.planName = value.trim();
@@ -43,7 +43,7 @@ export class PlanBuilderModal extends Modal {
     this.renderEntries(entriesContainer);
 
     // Routine picker row
-    const pickerSetting = new Setting(contentEl).setName("Add Routine");
+    const pickerSetting = new Setting(contentEl).setName("Add routine");
 
     if (this.availableRoutines.length === 0) {
       pickerSetting.setDesc("No routine notes found. Create routine notes first.");
@@ -78,35 +78,37 @@ export class PlanBuilderModal extends Modal {
 
     new Setting(contentEl).addButton((btn) =>
       btn
-        .setButtonText("Save Plan")
+        .setButtonText("Save plan")
         .setCta()
-        .onClick(async () => {
-          if (!this.planName) {
-            new Notice("Please enter a plan name.");
-            return;
-          }
-          if (this.selectedEntries.length === 0) {
-            new Notice("Please add at least one routine.");
-            return;
-          }
+        .onClick(() => {
+          void (async () => {
+            if (!this.planName) {
+              new Notice("Please enter a plan name.");
+              return;
+            }
+            if (this.selectedEntries.length === 0) {
+              new Notice("Please add at least one routine.");
+              return;
+            }
 
-          const plan: WorkoutPlanDefinition = {
-            id: createIdFromName(this.planName),
-            name: this.planName,
-            routines: this.selectedEntries.map((entry) => ({
-              ...entry,
-              day: entry.day || undefined,
-              notes: entry.notes || undefined,
-            })),
-          };
+            const plan: WorkoutPlanDefinition = {
+              id: createIdFromName(this.planName),
+              name: this.planName,
+              routines: this.selectedEntries.map((entry) => ({
+                ...entry,
+                day: entry.day || undefined,
+                notes: entry.notes || undefined,
+              })),
+            };
 
-          const file = await this.plugin.definitionService.createWorkoutPlanDefinition(plan);
-          this.onSave();
-          this.close();
+            const file = await this.plugin.definitionService.createWorkoutPlanDefinition(plan);
+            this.onSave();
+            this.close();
 
-          if (file) {
-            await this.app.workspace.openLinkText(file.path, "", false);
-          }
+            if (file) {
+              await this.app.workspace.openLinkText(file.path, "", false);
+            }
+          })();
         })
     );
   }

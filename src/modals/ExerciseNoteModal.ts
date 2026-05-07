@@ -33,7 +33,11 @@ export class ExerciseNoteModal extends Modal {
     this.exerciseName = exerciseName;
   }
 
-  async onOpen() {
+  onOpen() {
+    void this._onOpen();
+  }
+
+  private async _onOpen(): Promise<void> {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("exercise-note-modal");
