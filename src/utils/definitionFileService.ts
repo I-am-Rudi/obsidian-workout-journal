@@ -1,4 +1,11 @@
-import { App, Notice, TFile, parseYaml, stringifyYaml } from "obsidian";
+import {
+  App,
+  normalizePath,
+  Notice,
+  TFile,
+  parseYaml,
+  stringifyYaml,
+} from "obsidian";
 import { generateId } from "./idUtils";
 import {
   ExerciseDefinition,
@@ -32,7 +39,8 @@ export class DefinitionFileService {
   async createExerciseDefinition(def: ExerciseDefinition): Promise<TFile | null> {
     await this.ensureFolders();
     const fileName = this.createSafeFileName(def.name, "exercise-note");
-    const path = `${this.settings.exerciseLibraryFolder}/${fileName}.md`;
+    const folder = this.normalizeUserPath(this.settings.exerciseLibraryFolder);
+    const path = folder ? `${folder}/${fileName}.md` : `${fileName}.md`;
     const existing = this.app.vault.getAbstractFileByPath(path);
     const content = this.renderExerciseDefinition(def);
     if (existing instanceof TFile) {
@@ -45,7 +53,8 @@ export class DefinitionFileService {
   async createRoutineDefinition(def: RoutineDefinition): Promise<TFile | null> {
     await this.ensureFolders();
     const fileName = this.createSafeFileName(def.name, "routine-note");
-    const path = `${this.settings.routinesFolder}/${fileName}.md`;
+    const folder = this.normalizeUserPath(this.settings.routinesFolder);
+    const path = folder ? `${folder}/${fileName}.md` : `${fileName}.md`;
     const existing = this.app.vault.getAbstractFileByPath(path);
     const content = this.renderRoutineDefinition(def);
     if (existing instanceof TFile) {
@@ -60,7 +69,8 @@ export class DefinitionFileService {
   ): Promise<TFile | null> {
     await this.ensureFolders();
     const fileName = this.createSafeFileName(def.name, "plan-note");
-    const path = `${this.settings.workoutPlansFolder}/${fileName}.md`;
+    const folder = this.normalizeUserPath(this.settings.workoutPlansFolder);
+    const path = folder ? `${folder}/${fileName}.md` : `${fileName}.md`;
     const existing = this.app.vault.getAbstractFileByPath(path);
     const content = this.renderPlanDefinition(def);
     if (existing instanceof TFile) {
@@ -266,22 +276,29 @@ export class DefinitionFileService {
   }
 
   private async ensureFolder(path: string): Promise<void> {
-    if (!this.app.vault.getAbstractFileByPath(path)) {
+    const normalized = this.normalizeUserPath(path);
+    if (!normalized) return;
+    if (!this.app.vault.getAbstractFileByPath(normalized)) {
       try {
-        await this.app.vault.createFolder(path);
+        await this.app.vault.createFolder(normalized);
       } catch {
         // Vault cache may have been stale (common on iOS startup); re-check.
-        if (!this.app.vault.getAbstractFileByPath(path)) {
-          throw new Error(`Workout Tracker: failed to create folder "${path}"`);
+        if (!this.app.vault.getAbstractFileByPath(normalized)) {
+          throw new Error(`Workout Tracker: failed to create folder "${normalized}"`);
         }
       }
     }
   }
 
   private getFilesInFolder(path: string): TFile[] {
+    const normalized = this.normalizeUserPath(path);
+    if (!normalized) return [];
     return this.app.vault
       .getMarkdownFiles()
-      .filter((file) => file.path.startsWith(`${path}/`) && file.extension === "md");
+      .filter(
+        (file) =>
+          file.path.startsWith(`${normalized}/`) && file.extension === "md"
+      );
   }
 
   private async readFrontmatter(file: TFile): Promise<any | null> {
@@ -430,5 +447,10 @@ export class DefinitionFileService {
       const byPath = exercise.filePath?.replace(/\.md$/, "");
       return byPath === normalized || exercise.id === normalized || exercise.name === normalized;
     });
+  }
+
+  private normalizeUserPath(path: string): string {
+    const trimmed = path.trim();
+    return trimmed ? normalizePath(trimmed) : "";
   }
 }

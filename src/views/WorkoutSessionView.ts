@@ -23,7 +23,7 @@ export class WorkoutSessionView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "Workout Session";
+    return "Workout session";
   }
 
   async onOpen() {
@@ -79,7 +79,7 @@ export class WorkoutSessionView extends ItemView {
       return;
     }
 
-    contentEl.createEl("h2", { text: this.session.name });
+    new Setting(contentEl).setName(this.session.name).setHeading();
     const meta = contentEl.createEl("p", { cls: "workout-session-meta" });
     meta.setText(
       `${this.session.date}${
@@ -103,7 +103,10 @@ export class WorkoutSessionView extends ItemView {
           new ExerciseNoteModal(this.app, exercise.exerciseFilePath!, exercise.exerciseName).open();
         };
       } else {
-        cardHeader.createEl("h3", { text: exercise.exerciseName });
+        cardHeader.createDiv({
+          text: exercise.exerciseName,
+          cls: "workout-session-exercise-name",
+        });
       }
 
       // Timer button – shows current duration and toggles the inline editor
