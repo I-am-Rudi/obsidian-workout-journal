@@ -24,7 +24,7 @@ import { WorkoutFileService } from "./utils/workoutFileService";
 import { DefinitionFileService } from "./utils/definitionFileService";
 import { PerformanceCsvService } from "./utils/performanceCsvService";
 import { WorkoutSessionService } from "./utils/workoutSessionService";
-import { createIdFromName } from "./utils/idUtils";
+import { createIdFromName, generateId } from "./utils/idUtils";
 import {
   ExerciseTemplateModal,
   InputPromptModal,
@@ -386,6 +386,15 @@ export default class WorkoutTrackerPlugin extends Plugin {
     );
     this.activeSession = session;
     await this.openSessionView(preferPopout);
+  }
+
+  async startQuickLogSession(preferPopout: boolean): Promise<void> {
+    const routineDef: RoutineDefinition = {
+      id: `untitled-${generateId()}`,
+      name: "untitled",
+      exercises: [],
+    };
+    await this.startSessionFromRoutine(routineDef, preferPopout);
   }
 
   finishActiveSessionFromView(): void {
