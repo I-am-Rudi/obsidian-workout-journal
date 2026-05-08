@@ -11,6 +11,8 @@ export class WorkoutSessionView extends ItemView {
   plugin: WorkoutTrackerPlugin;
   session: WorkoutSession | null = null;
   private static readonly EXERCISE_DRAG_LONG_PRESS_MS = 2000;
+  private static readonly PRIMARY_MOUSE_BUTTON = 0;
+  private static readonly DROP_AFTER_THRESHOLD_RATIO = 0.5;
   private timerIntervals: Map<number, ReturnType<typeof setInterval>> = new Map();
   private timerRemaining: Map<number, number> = new Map();
   private feedbackAudioContext: AudioContext | null = null;
@@ -147,7 +149,7 @@ export class WorkoutSessionView extends ItemView {
         card.addClass("workout-session-card-drag-enabled");
       };
       const onPressStart = (event: PointerEvent) => {
-        if (event.button !== 0) return;
+        if (event.button !== WorkoutSessionView.PRIMARY_MOUSE_BUTTON) return;
         clearLongPress();
         dragLongPressTimeout = setTimeout(() => {
           dragLongPressTimeout = null;
@@ -196,7 +198,9 @@ export class WorkoutSessionView extends ItemView {
         const exercises = session.exercises;
         if (sourceIndex < 0 || sourceIndex >= exercises.length) return;
         const cardBounds = card.getBoundingClientRect();
-        const dropAfter = event.clientY >= cardBounds.top + cardBounds.height / 2;
+        const dropAfter =
+          event.clientY >=
+          cardBounds.top + cardBounds.height * WorkoutSessionView.DROP_AFTER_THRESHOLD_RATIO;
         let insertionIndex = exerciseIndex + (dropAfter ? 1 : 0);
         const [movedExercise] = exercises.splice(sourceIndex, 1);
         if (sourceIndex < insertionIndex) insertionIndex -= 1;
