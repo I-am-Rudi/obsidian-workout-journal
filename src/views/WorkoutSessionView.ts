@@ -197,17 +197,16 @@ export class WorkoutSessionView extends ItemView {
         event.preventDefault();
         card.removeClass("workout-session-card-drop-target");
         const dataTransferIndex = event.dataTransfer?.getData("text/plain");
-        const parsedDataTransferIndex = dataTransferIndex !== "" && dataTransferIndex !== undefined
-          ? parseInt(dataTransferIndex, 10)
-          : null;
-        const sourceIndex = parsedDataTransferIndex ?? draggedExerciseIndex;
+        const parsedDataTransferIndex =
+          dataTransferIndex !== "" ? Number.parseInt(dataTransferIndex, 10) : Number.NaN;
+        const sourceIndex = Number.isNaN(parsedDataTransferIndex)
+          ? draggedExerciseIndex
+          : parsedDataTransferIndex;
         if (sourceIndex === null || Number.isNaN(sourceIndex) || sourceIndex === exerciseIndex) return;
         const exercises = session.exercises;
         if (sourceIndex < 0 || sourceIndex >= exercises.length) return;
         const cardBounds = card.getBoundingClientRect();
-        const dropAfter =
-          event.clientY >=
-          cardBounds.top + cardBounds.height * WorkoutSessionView.DROP_AFTER_THRESHOLD_RATIO;
+        const dropAfter = event.clientY >= cardBounds.top + cardBounds.height * WorkoutSessionView.DROP_AFTER_THRESHOLD_RATIO;
         let insertionIndex = exerciseIndex + (dropAfter ? 1 : 0);
         const [movedExercise] = exercises.splice(sourceIndex, 1);
         if (sourceIndex < insertionIndex) insertionIndex -= 1;
