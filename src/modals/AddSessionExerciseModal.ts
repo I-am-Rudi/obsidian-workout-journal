@@ -6,6 +6,13 @@ import { PerformanceCsvService } from "../utils/performanceCsvService";
 
 const VALID_SET_TYPES = new Set<SetType>(["default", "warmup", "dropset", "myoreps"]);
 
+function normalizeSetType(value: string | undefined): SetType | undefined {
+  if (!value || !VALID_SET_TYPES.has(value as SetType) || value === "default") {
+    return undefined;
+  }
+  return value as SetType;
+}
+
 const DEFAULT_NUM_SETS = 3;
 
 export class AddSessionExerciseModal extends Modal {
@@ -126,9 +133,7 @@ export class AddSessionExerciseModal extends Modal {
         duration: ex.defaultDuration,
         distance: ex.defaultDistance,
         completed: false,
-        setType: VALID_SET_TYPES.has(s.setType as SetType) && s.setType !== "default"
-          ? (s.setType as SetType)
-          : undefined,
+        setType: normalizeSetType(s.setType),
       }));
       return {
         exerciseId: ex.id,
