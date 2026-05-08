@@ -12,6 +12,7 @@ export class WorkoutSessionView extends ItemView {
   session: WorkoutSession | null = null;
   private timerIntervals: Map<number, ReturnType<typeof setInterval>> = new Map();
   private timerRemaining: Map<number, number> = new Map();
+  private feedbackAudioContext: AudioContext | null = null;
 
   constructor(leaf: WorkspaceLeaf, plugin: WorkoutTrackerPlugin) {
     super(leaf);
@@ -34,6 +35,10 @@ export class WorkoutSessionView extends ItemView {
   async onClose(): Promise<void> {
     this.timerIntervals.forEach((intervalId) => clearInterval(intervalId));
     this.timerIntervals.clear();
+    if (this.feedbackAudioContext) {
+      void this.feedbackAudioContext.close();
+      this.feedbackAudioContext = null;
+    }
     this.contentEl.empty();
   }
 
@@ -337,6 +342,7 @@ export class WorkoutSessionView extends ItemView {
             exercise.completed = exercise.sets.every((exerciseSet) => exerciseSet.completed);
             row.toggleClass("workout-session-row-completed", set.completed);
             if (done.checked) {
+              this.triggerSetCompletionFeedback();
               const dur = exercise.restTimerSeconds !== undefined
                 ? exercise.restTimerSeconds
                 : this.plugin.settings.defaultRestTimerSeconds;
@@ -485,6 +491,7 @@ export class WorkoutSessionView extends ItemView {
       exercise.completed = exercise.sets.every((s) => s.completed);
       card.toggleClass("workout-session-row-completed", set.completed);
       if (done.checked) {
+        this.triggerSetCompletionFeedback();
         const dur = exercise.restTimerSeconds !== undefined
           ? exercise.restTimerSeconds
           : this.plugin.settings.defaultRestTimerSeconds;
@@ -556,6 +563,7 @@ export class WorkoutSessionView extends ItemView {
         this.timerRemaining.delete(exerciseIndex);
         display.hide();
         display.textContent = "";
+        this.triggerRestTimerCompletionFeedback();
         new Notice("🏋️ Rest complete! Time for the next set.");
         return;
       }
@@ -580,6 +588,85 @@ export class WorkoutSessionView extends ItemView {
     this.timerRemaining.delete(exerciseIndex);
     display.hide();
     display.textContent = "";
+  }
+
+  private triggerSetCompletionFeedback(): void {
+    this.triggerFeedback(
+      this.plugin.settings.enableSetCompletionVibrationFeedback,
+      this.plugin.settings.enableSetCompletionSoundFeedback,
+      [35],
+      880,
+      0.08,
+      0.08
+    );
+  }
+
+  private triggerRestTimerCompletionFeedback(): void {
+    this.triggerFeedback(
+      this.plugin.settings.enableRestTimerVibrationFeedback,
+      this.plugin.settings.enableRestTimerSoundFeedback,
+      [180, 80, 180],
+      660,
+      0.08,
+      0.2
+    );
+  }
+
+  private triggerFeedback(
+    vibrateEnabled: boolean,
+    soundEnabled: boolean,
+    vibrationPattern: number | number[],
+    frequency: number,
+    gainPeak: number,
+    durationSeconds: number
+  ): void {
+    if (
+      vibrateEnabled &&
+      Platform.isMobile &&
+      typeof navigator !== "undefined" &&
+      "vibrate" in navigator
+    ) {
+      navigator.vibrate(vibrationPattern);
+    }
+
+    if (!soundEnabled || typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const AudioContextClass: typeof AudioContext | undefined = window.AudioContext;
+      if (!AudioContextClass) {
+        return;
+      }
+      if (!this.feedbackAudioContext || this.feedbackAudioContext.state === "closed") {
+        this.feedbackAudioContext = new AudioContextClass();
+      }
+      const audioContext = this.feedbackAudioContext;
+      if (audioContext.state === "suspended") {
+        void audioContext.resume();
+      }
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      const minGainValue = 0.0001;
+      const attackTimeSeconds = 0.01;
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(minGainValue, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        gainPeak,
+        audioContext.currentTime + attackTimeSeconds
+      );
+      gainNode.gain.exponentialRampToValueAtTime(
+        minGainValue,
+        audioContext.currentTime + durationSeconds
+      );
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + durationSeconds);
+    } catch {
+      // no-op: feedback is best-effort only
+    }
   }
 
   async finishWithOptions(options: SessionFinishOptions): Promise<void> {
