@@ -10,6 +10,7 @@ export const WORKOUT_SESSION_VIEW_TYPE = "workout-tracker-session-view";
 export class WorkoutSessionView extends ItemView {
   plugin: WorkoutTrackerPlugin;
   session: WorkoutSession | null = null;
+  private static readonly EXERCISE_DRAG_LONG_PRESS_MS = 2000;
   private timerIntervals: Map<number, ReturnType<typeof setInterval>> = new Map();
   private timerRemaining: Map<number, number> = new Map();
   private feedbackAudioContext: AudioContext | null = null;
@@ -84,6 +85,7 @@ export class WorkoutSessionView extends ItemView {
       return;
     }
     const session = this.session;
+    let draggedExerciseIndex: number | null = null;
 
     const titleEl = contentEl.createDiv({
       text: this.session.name,
@@ -100,19 +102,28 @@ export class WorkoutSessionView extends ItemView {
 
     session.exercises.forEach((exercise, exerciseIndex) => {
       const card = contentEl.createDiv({ cls: "workout-session-card" });
+      card.draggable = false;
 
       // Exercise header with name and management controls
       const cardHeader = card.createDiv({ cls: "workout-session-card-header" });
+      let exerciseTitleEl: HTMLElement;
+      let suppressExerciseTitleClick = false;
+      let dragLongPressTimeout: ReturnType<typeof setTimeout> | null = null;
 
       if (exercise.exerciseFilePath) {
         const nameBtn = cardHeader.createEl("button", {
           text: exercise.exerciseName,
           cls: "workout-session-exercise-name-btn",
-          title: "View / edit exercise note",
+          title: "View / edit exercise note • press and hold for 2 seconds to drag",
         });
         nameBtn.onclick = () => {
+          if (suppressExerciseTitleClick) {
+            suppressExerciseTitleClick = false;
+            return;
+          }
           new ExerciseNoteModal(this.app, exercise.exerciseFilePath, exercise.exerciseName).open();
         };
+        exerciseTitleEl = nameBtn;
       } else {
         const exerciseNameEl = cardHeader.createDiv({
           text: exercise.exerciseName,
@@ -120,7 +131,79 @@ export class WorkoutSessionView extends ItemView {
         });
         exerciseNameEl.setAttr("role", "heading");
         exerciseNameEl.setAttr("aria-level", "3");
+        exerciseNameEl.setAttr("title", "Press and hold for 2 seconds to drag");
+        exerciseTitleEl = exerciseNameEl;
       }
+
+      const clearLongPress = () => {
+        if (dragLongPressTimeout !== null) {
+          clearTimeout(dragLongPressTimeout);
+          dragLongPressTimeout = null;
+        }
+      };
+      const enableDragMode = () => {
+        suppressExerciseTitleClick = true;
+        card.draggable = true;
+        card.addClass("workout-session-card-drag-enabled");
+      };
+      const onPressStart = (event: PointerEvent) => {
+        if (event.button !== 0) return;
+        clearLongPress();
+        dragLongPressTimeout = setTimeout(() => {
+          dragLongPressTimeout = null;
+          enableDragMode();
+        }, WorkoutSessionView.EXERCISE_DRAG_LONG_PRESS_MS);
+      };
+      const onPressEnd = () => clearLongPress();
+      exerciseTitleEl.addEventListener("pointerdown", onPressStart);
+      exerciseTitleEl.addEventListener("pointerup", onPressEnd);
+      exerciseTitleEl.addEventListener("pointercancel", onPressEnd);
+      exerciseTitleEl.addEventListener("pointerleave", onPressEnd);
+
+      card.addEventListener("dragstart", (event: DragEvent) => {
+        if (!card.draggable) {
+          event.preventDefault();
+          return;
+        }
+        draggedExerciseIndex = exerciseIndex;
+        card.addClass("workout-session-card-dragging");
+        if (event.dataTransfer) {
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", String(exerciseIndex));
+        }
+      });
+      card.addEventListener("dragend", () => {
+        draggedExerciseIndex = null;
+        card.removeClass("workout-session-card-dragging");
+        card.removeClass("workout-session-card-drag-enabled");
+        card.removeClass("workout-session-card-drop-target");
+        card.draggable = false;
+      });
+      card.addEventListener("dragover", (event: DragEvent) => {
+        if (draggedExerciseIndex === null || draggedExerciseIndex === exerciseIndex) return;
+        event.preventDefault();
+        card.addClass("workout-session-card-drop-target");
+      });
+      card.addEventListener("dragleave", () => {
+        card.removeClass("workout-session-card-drop-target");
+      });
+      card.addEventListener("drop", (event: DragEvent) => {
+        event.preventDefault();
+        card.removeClass("workout-session-card-drop-target");
+        const dataTransferIndex = event.dataTransfer?.getData("text/plain");
+        const sourceIndex = dataTransferIndex ? parseInt(dataTransferIndex, 10) : draggedExerciseIndex;
+        if (sourceIndex === null || Number.isNaN(sourceIndex) || sourceIndex === exerciseIndex) return;
+        const exercises = session.exercises;
+        if (sourceIndex < 0 || sourceIndex >= exercises.length) return;
+        const cardBounds = card.getBoundingClientRect();
+        const dropAfter = event.clientY >= cardBounds.top + cardBounds.height / 2;
+        let insertionIndex = exerciseIndex + (dropAfter ? 1 : 0);
+        const [movedExercise] = exercises.splice(sourceIndex, 1);
+        if (sourceIndex < insertionIndex) insertionIndex -= 1;
+        exercises.splice(insertionIndex, 0, movedExercise);
+        session.hasRoutineChanges = true;
+        this.render();
+      });
 
       // Timer button – shows current duration and toggles the inline editor
       const timerDuration = exercise.restTimerSeconds !== undefined

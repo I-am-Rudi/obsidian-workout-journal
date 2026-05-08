@@ -301,6 +301,20 @@
     margin-bottom: 12px;
 }
 
+.workout-session-card-drag-enabled {
+    cursor: grab;
+}
+
+.workout-session-card-dragging {
+    opacity: 0.55;
+    cursor: grabbing;
+}
+
+.workout-session-card-drop-target {
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 1px var(--interactive-accent);
+}
+
 .workout-session-card h3 {
     margin: 0 0 8px 0;
 }
