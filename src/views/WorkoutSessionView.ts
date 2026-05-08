@@ -12,6 +12,7 @@ export class WorkoutSessionView extends ItemView {
   session: WorkoutSession | null = null;
   private timerIntervals: Map<number, ReturnType<typeof setInterval>> = new Map();
   private timerRemaining: Map<number, number> = new Map();
+  private feedbackAudioContext: AudioContext | null = null;
 
   constructor(leaf: WorkspaceLeaf, plugin: WorkoutTrackerPlugin) {
     super(leaf);
@@ -34,6 +35,10 @@ export class WorkoutSessionView extends ItemView {
   async onClose(): Promise<void> {
     this.timerIntervals.forEach((intervalId) => clearInterval(intervalId));
     this.timerIntervals.clear();
+    if (this.feedbackAudioContext) {
+      void this.feedbackAudioContext.close();
+      this.feedbackAudioContext = null;
+    }
     this.contentEl.empty();
   }
 
@@ -629,11 +634,17 @@ export class WorkoutSessionView extends ItemView {
     }
 
     try {
-      const AudioContextClass = window.AudioContext;
+      const AudioContextClass: typeof AudioContext | undefined = window.AudioContext;
       if (!AudioContextClass) {
         return;
       }
-      const audioContext = new AudioContextClass();
+      if (!this.feedbackAudioContext || this.feedbackAudioContext.state === "closed") {
+        this.feedbackAudioContext = new AudioContextClass();
+      }
+      const audioContext = this.feedbackAudioContext;
+      if (audioContext.state === "suspended") {
+        void audioContext.resume();
+      }
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       const minGainValue = 0.0001;
@@ -653,9 +664,6 @@ export class WorkoutSessionView extends ItemView {
       gainNode.connect(audioContext.destination);
       oscillator.start();
       oscillator.stop(audioContext.currentTime + durationSeconds);
-      oscillator.onended = () => {
-        void audioContext.close();
-      };
     } catch {
       // no-op: feedback is best-effort only
     }
