@@ -752,14 +752,14 @@
     padding: 3px 6px;
 }
 
-.workout-session-timer-ok,
-.workout-session-timer-cancel {
+.workout-session-view .workout-session-timer-editor .workout-session-timer-ok,
+.workout-session-view .workout-session-timer-editor .workout-session-timer-cancel {
     background: none;
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
     padding: 2px 8px;
     cursor: pointer;
-    font-size: 13px !important;
+    font-size: 13px;
     line-height: 1.4;
 }
 
@@ -846,9 +846,9 @@
     box-sizing: border-box;
 }
 
-.exercise-note-modal-save,
-.exercise-note-modal-cancel {
-    font-size: 13px !important;
+.exercise-note-modal .exercise-note-modal-save,
+.exercise-note-modal .exercise-note-modal-cancel {
+    font-size: 13px;
     line-height: 1.4;
     white-space: nowrap;
     max-width: 100%;
