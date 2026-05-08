@@ -629,22 +629,24 @@ export class WorkoutSessionView extends ItemView {
     }
 
     try {
-      const AudioContextConstructor = window.AudioContext;
-      if (!AudioContextConstructor) {
+      const AudioContextClass = window.AudioContext;
+      if (!AudioContextClass) {
         return;
       }
-      const audioContext = new AudioContextConstructor();
+      const audioContext = new AudioContextClass();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
+      const minGainValue = 0.0001;
+      const attackTimeSeconds = 0.01;
       oscillator.type = "sine";
       oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-      gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(minGainValue, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(
         gainPeak,
-        audioContext.currentTime + 0.01
+        audioContext.currentTime + attackTimeSeconds
       );
       gainNode.gain.exponentialRampToValueAtTime(
-        0.0001,
+        minGainValue,
         audioContext.currentTime + durationSeconds
       );
       oscillator.connect(gainNode);
