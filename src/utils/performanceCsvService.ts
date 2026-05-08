@@ -139,7 +139,7 @@ export class PerformanceCsvService {
             completed: "true",
             recordType: "imported",
             notes: "",
-            setType: "",
+            setType: set.setType || "",
           })
         );
       }
