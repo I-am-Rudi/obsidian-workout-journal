@@ -169,18 +169,17 @@ The plugin creates structured markdown files with YAML frontmatter for data stor
 
 ```markdown
 ---
-id: "1672531200000"
-date: "2025-06-26"
+wj-id: "1672531200000"
+wj-date: "2025-06-26"
 name: "Morning Run"
-duration: 30
-exercises:
+wj-duration: 30
+wj-exercises:
   - name: "Running"
     sets:
       - duration: 30
         distance: 3
-    notes: "Good pace, felt strong"
-notes: "Beautiful morning for a run"
-workoutTracker: true
+wj-notes: "Beautiful morning for a run"
+wj-type: workout
 ---
 
 # Morning Run
@@ -196,7 +195,6 @@ workoutTracker: true
 | --- | ---- | ------ | -------- | -------- | ---- |
 | 1   | -    | -      | 30       | 3        | -    |
 
-**Notes:** Good pace, felt strong
 
 ## Notes
 

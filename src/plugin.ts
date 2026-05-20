@@ -93,7 +93,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
     try {
       ribbonIcon = this.addRibbonIcon(
         "biceps-flexed",
-        "Workout journal",
+        "Workout Journal",
         openWorkoutTypeModal
       );
     } catch (error) {
@@ -104,7 +104,7 @@ export default class WorkoutTrackerPlugin extends Plugin {
       try {
         ribbonIcon = this.addRibbonIcon(
           "calendar",
-          "Workout journal",
+          "Workout Journal",
           openWorkoutTypeModal
         );
       } catch (fallbackError) {

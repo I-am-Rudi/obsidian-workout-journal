@@ -15,7 +15,7 @@ export class WorkoutTypeSelectionModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
 
-    contentEl.createEl("h2", { text: "Workout journal" });
+    contentEl.createEl("h2", { text: "Workout Journal" });
 
     new Setting(contentEl)
       .setName("Quick log")
