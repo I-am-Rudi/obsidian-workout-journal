@@ -589,6 +589,7 @@
     flex: 1 1 auto;
     width: 100%;
     min-height: 1.4em;
+    height: var(--workout-session-routine-note-height, auto);
     border: none;
     border-radius: 0;
     box-shadow: none;
@@ -603,6 +604,10 @@
     white-space: pre-wrap;
     word-break: break-word;
     font-family: inherit;
+}
+
+.workout-session-routine-note-input.workout-session-routine-note-input-sizing {
+    height: auto;
 }
 
 .workout-session-routine-note-input:focus {

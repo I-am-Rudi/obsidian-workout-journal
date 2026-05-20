@@ -264,8 +264,12 @@ export class WorkoutSessionView extends ItemView {
       routineNoteInput.placeholder = "Add routine note…";
 
       const resizeRoutineNoteInput = () => {
-        routineNoteInput.style.height = "auto";
-        routineNoteInput.style.height = `${routineNoteInput.scrollHeight}px`;
+        routineNoteInput.addClass("workout-session-routine-note-input-sizing");
+        const contentHeight = `${routineNoteInput.scrollHeight}px`;
+        routineNoteInput.removeClass("workout-session-routine-note-input-sizing");
+        routineNoteInput.setCssProps({
+          "--workout-session-routine-note-height": contentHeight,
+        });
       };
       resizeRoutineNoteInput();
 
